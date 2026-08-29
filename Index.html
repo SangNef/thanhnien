@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Quản lý, Điểm danh &amp; Cảnh báo Thanh niên hư - Công an 2 Cấp (Standalone v3.0)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-body: #f5f6fa;
+      --bg-panel: #ffffff;
+      --bg-panel-alt: #f8f9fb;
+      --bg-input: #f0f1f5;
+      --bg-hover: #e8eaef;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(231, 145, 36, 0.45);
+      --text-primary: #1a1d26;
+      --text-secondary: #6b7080;
+      --text-muted: #9ca3af;
+      --accent: #e79124;
+      --accent-hover: #ca791a;
+      --accent-soft: #fdf4e9;
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+      --danger-border: #fecaca;
+      --success: #16a34a;
+      --success-soft: #f0fdf4;
+      --success-border: #bbf7d0;
+      --warning: #d97706;
+      --warning-soft: #fffbeb;
+      --warning-border: #fde68a;
+      --info: #0e7896;
+      --info-soft: #f0f9ff;
+      --info-border: #bae6fd;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.06);
+      --shadow-lg: 0 12px 32px rgba(15,23,42,0.12);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 9999px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* Watermark */
+    .watermark-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='180' opacity='0.035'><text x='20' y='90' font-size='12' font-family='sans-serif' fill='%23000' transform='rotate(-22 20,90)'>CÔNG AN HÀ TĨNH · CHỐNG CHỤP ẢNH</text></svg>");
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+    /* Utilities */
+    .flex { display: flex; }
+    .flex-col { display: flex; flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .gap-6 { gap: 24px; }
+    .flex-1 { flex: 1; }
+    .flex-none { flex: none; }
+    .w-full { width: 100%; }
+    .min-w-0 { min-width: 0; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      outline: none;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 8px; }
+    .btn-lg { padding: 10px 20px; font-size: 14px; border-radius: var(--radius-md); }
+    .btn-primary { background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 2px 6px rgba(231,145,36,0.3); }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-secondary { background: #ffffff; color: var(--text-primary); border-color: #d1d5db; }
+    .btn-secondary:hover { background: var(--bg-hover); border-color: #9ca3af; }
+    .btn-danger { background: var(--danger); color: #ffffff; border-color: var(--danger); }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: transparent; }
+    .btn-ghost:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .badge-critical { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger-border); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); border: 1px solid var(--warning-border); }
+    .badge-success { background: var(--success-soft); color: var(--success); border: 1px solid var(--success-border); }
+    .badge-info { background: var(--info-soft); color: var(--info); border: 1px solid var(--info-border); }
+    .badge-muted { background: var(--bg-panel-alt); color: var(--text-secondary); border: 1px solid #e5e7eb; }
+    .badge-accent { background: var(--accent-soft); color: var(--accent-hover); border: 1px solid #f9dfbf; }
+
+    /* Inputs & Selects */
+    .form-control {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: var(--text-primary);
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(231,145,36,0.15); }
+    .form-label { font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 5px; display: block; }
+
+    /* Cards & Containers */
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+    }
+    .card-hover:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+
+    /* Tables */
+    .table-responsive { width: 100%; overflow-x: auto; background: #ffffff; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table.data-table { width: 100%; border-collapse: collapse; text-align: left; }
+    table.data-table th { background: var(--bg-panel-alt); color: #98a2b3; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; border-bottom: 1px solid #eef2f7; }
+    table.data-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid #f1f3f7; vertical-align: middle; }
+    table.data-table tr:last-child td { border-bottom: none; }
+    table.data-table tr:hover td { background: #fafbfc; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 24, 40, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.15s ease-out;
+    }
+    .modal-window {
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-header { padding: 18px 24px; border-bottom: 1px solid #f1f3f7; display: flex; align-items: flex-start; justify-content: space-between; }
+    .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .modal-footer { padding: 14px 24px; border-top: 1px solid #f1f3f7; display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: #fafbfc; }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1100;
+      pointer-events: none;
+    }
+    .toast-box {
+      pointer-events: auto;
+      background: #101828;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 16px 40px rgba(15,23,42,0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideUpToast 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Keyframes */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes slideUpToast { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); } 50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); } }
+    .pulse-danger { animation: pulseRed 1.8s infinite; }
+  </style>
+</head>
+<body>
+
+<div class="watermark-overlay"></div>
+<div id="app"></div>
+<div class="toast-container" id="toastRoot"></div>
+
+<script>
+// ==================== MOCK DATABASE ====================
+const DB = {
+  objects: [
+    { code: 'HT-0342', name: 'Nguyễn Văn Cường', birth: '2007', hamlet: 'TDP 4', cls: 'GC', score: 42, plate: '38-K1 456.78', vehicle: 'Honda Wave RSX', mods: ['Pô nổ', 'Tháo yếm'], state: 'active', roll: 'pending', time: '', officer: 'Đại úy Nguyễn Hữu Bình', cccd: '042098001342', family: 'Bố mẹ ly hôn, sống với bà nội', reason: 'Vắng mặt điểm danh đêm 27/08' },
+    { code: 'HT-0355', name: 'Trần Quốc Đạt', birth: '2006', hamlet: 'TDP 2', cls: 'GC', score: 61, plate: '38-B2 331.05', vehicle: 'Yamaha Exciter', mods: ['Hạ phuộc'], state: 'active', roll: 'pending', time: '', officer: 'Đại úy Nguyễn Hữu Bình', cccd: '042098001355', family: 'Sống cùng bố mẹ, bỏ học lớp 11', reason: 'Phát hiện xe còn lỗi độ chế' },
+    { code: 'HT-0361', name: 'Lê Minh Hoàng', birth: '2008', hamlet: 'TDP 7', cls: 'CT', score: 88, plate: 'Không có xe', vehicle: '—', mods: [], state: 'active', roll: 'present', time: '22:14', officer: 'Thượng úy Lê Văn Hòa', cccd: '042098001361', family: 'Gia đình đầy đủ, đang học nghề', reason: 'Chấp hành tốt 15 ngày liên tục' },
+    { code: 'HT-0370', name: 'Phạm Văn Kiên', birth: '2005', hamlet: 'TDP 1', cls: 'GC', score: 47, plate: '38-B1 782.44', vehicle: 'Yamaha Sirius', mods: ['Đôn nòng', 'Pô nổ'], state: 'active', roll: 'absent', time: '23:02', officer: 'Đại úy Nguyễn Hữu Bình', cccd: '042098001370', family: 'Bố đi làm xa, mẹ buôn bán nhỏ', reason: 'Vắng mặt không lý do' },
+    { code: 'HT-0388', name: 'Võ Thành Nam', birth: '2007', hamlet: 'TDP 5', cls: 'CT', score: 76, plate: '38-B3 190.62', vehicle: 'Honda Vision', mods: [], state: 'active', roll: 'present', time: '22:41', officer: 'Thượng úy Lê Văn Hòa', cccd: '042098001388', family: 'Sống cùng anh trai', reason: 'Có mặt đúng giờ' },
+    { code: 'HT-0392', name: 'Nguyễn Đức Thắng', birth: '2006', hamlet: 'TDP 3', cls: 'CT', score: 93, plate: '38-B1 044.19', vehicle: 'Honda Blade', mods: [], state: 'active', roll: 'present', time: '22:58', officer: 'Thượng úy Lê Văn Hòa', cccd: '042098001392', family: 'Đang làm công nhân KCN', reason: 'Hoàn nguyên xe theo cam kết' },
+    { code: 'HT-0401', name: 'Đặng Văn Tuấn', birth: '2008', hamlet: 'TDP 6', cls: 'GC', score: 35, plate: '38-K1 908.30', vehicle: 'Honda Wave Alpha', mods: ['Pô nổ', 'Tháo yếm', 'Đôn nòng'], state: 'pending', roll: 'pending', time: '', officer: 'Đại úy Nguyễn Hữu Bình', cccd: '042098001401', family: 'Không nghề nghiệp, hay tụ tập đêm', reason: 'Có mặt muộn so với thời điểm hẹn' },
+    { code: 'HT-0410', name: 'Hoàng Gia Bảo', birth: '2007', hamlet: 'TDP 4', cls: 'CT', score: 81, plate: '38-B2 517.73', vehicle: 'Yamaha Jupiter', mods: [], state: 'pending', roll: 'pending', time: '', officer: 'Thượng úy Lê Văn Hòa', cccd: '042098001410', family: 'Sống cùng bố mẹ, đang học lớp 12', reason: 'Chấp hành tốt 7 ngày' }
+  ],
+  communes: [
+    { name: 'Phường Thành Sen', total: 34, high: 12, rate: 78, absent: 1, late: 0, updated: '23:41', sla: '6/6', points: 88, trend: 'Tăng' },
+    { name: 'Phường Trần Phú', total: 28, high: 9, rate: 91, absent: 0, late: 0, updated: '23:36', sla: '5/5', points: 95, trend: 'Tăng' },
+    { name: 'Xã Thạch Trung', total: 26, high: 8, rate: 86, absent: 1, late: 0, updated: '23:28', sla: '4/4', points: 90, trend: 'Giữ' },
+    { name: 'Xã Đồng Tiến', total: 22, high: 6, rate: 72, absent: 2, late: 1, updated: '23:12', sla: '3/5', points: 68, trend: 'Giảm' },
+    { name: 'Xã Thạch Hạ', total: 21, high: 7, rate: 84, absent: 1, late: 0, updated: '23:33', sla: '4/4', points: 86, trend: 'Giữ' },
+    { name: 'Xã Cẩm Bình', total: 17, high: 5, rate: 69, absent: 3, late: 2, updated: '22:57', sla: '2/5', points: 61, trend: 'Giảm' }
+  ],
+  alerts: [
+    { code: 'CB-2026-0814', level: 'Khẩn cấp', tone: 'critical', commune: 'Phường Thành Sen', title: 'Kiểm tra tụ điểm đua xe khu vực cầu Phủ', desc: 'Kiểm tra đột xuất 4 đối tượng ĐTNGC tại TDP 1, 4, 6; ghi nhận tình trạng xe và test chất kích thích.', sla: '00:45:00', state: 'open' },
+    { code: 'CB-AUTO-0829', level: 'Khẩn cấp', tone: 'critical', commune: 'Phường Thành Sen', auto: true, title: 'Tự động: ĐTNGC vắng mặt trong khung 22:00 – 06:00', desc: 'Chuông báo động đỏ: Phạm Văn Kiên (ĐTNGC) vắng mặt lúc 23:02, xe không có tại nhà. SLA khẩn cấp ≤ 60 phút.', sla: '00:38:00', state: 'open' },
+    { code: 'CB-2026-0812', level: 'Cao', tone: 'warning', commune: 'Xã Cẩm Bình', title: 'Đôn đốc tỷ lệ điểm danh dưới ngưỡng', desc: 'Tỷ lệ điểm danh 69%, yêu cầu rà soát nguyên nhân và bổ sung ca điểm danh trong 24h.', sla: '18:20:00', state: 'open' }
+  ],
+  sessions: [
+    { date: '23/08', wd: 'T7', total: 8, done: 8, absent: 0, locked: true },
+    { date: '24/08', wd: 'CN', total: 8, done: 8, absent: 1, locked: true },
+    { date: '25/08', wd: 'T2', total: 8, done: 7, absent: 1, locked: true },
+    { date: '26/08', wd: 'T3', total: 8, done: 8, absent: 0, locked: true },
+    { date: '27/08', wd: 'T4', total: 8, done: 8, absent: 2, locked: true },
+    { date: '28/08', wd: 'T5', total: 8, done: 8, absent: 0, locked: true },
+    { date: '29/08', wd: 'T6', total: 8, done: 3, absent: 1, locked: false }
+  ],
+  audit: [
+    { time: '23:41:08', officer: 'Đại úy Nguyễn Hữu Bình', action: 'Điểm danh có mặt', target: 'HT-0392', hash: 'a91f4c…7d20' },
+    { time: '23:34:52', officer: 'Đại úy Nguyễn Hữu Bình', action: 'Tải ảnh xác thực (Zalo)', target: 'HT-0392', hash: '5c02be…11af' },
+    { time: '23:12:40', officer: 'Trung tá Trần Đình Sơn', action: 'Phân công kiểm tra đột xuất', target: 'CB-2026-0814', hash: 'df7710…9b34' },
+    { time: '23:09:17', officer: 'Trung tá Trần Đình Sơn', action: 'Tiếp nhận cảnh báo Tỉnh', target: 'CB-2026-0814', hash: '2b8ea4…c05d' },
+    { time: '23:05:02', officer: 'Thượng tá Phan Văn Kỳ', action: 'Phát cảnh báo điều hành', target: 'Phường Thành Sen', hash: 'e4419d…88f1' },
+    { time: '23:02:36', officer: 'Đại úy Nguyễn Hữu Bình', action: 'Ghi nhận vắng mặt', target: 'HT-0370', hash: '77c1a0…4e6b' },
+    { time: '22:14:05', officer: 'Thượng úy Lê Văn Hòa', action: 'Điểm danh có mặt', target: 'HT-0361', hash: '0ab933…d719' },
+    { time: '06:00:00', officer: 'Hệ thống', action: 'Khóa cứng phiên 24h', target: 'Phiên 27/08', hash: 'bb5f28…3a90' }
+  ]
+};
+
+// ==================== APPLICATION STATE ====================
+let state = {
+  role: null, // 'CSKV', 'LDXA', 'TINH'
+  screen: 'work',
+  selectedSubject: null,
+  activeModal: null, // 'checkin', 'profile', 'summons', 'alert', 'newAlert', 'discharge', 'assign'
+  selectedDate: '29/08',
+  filterState: 'ALL',
+  filterHamlet: 'ALL',
+  searchQuery: '',
+  lockCountdownSeconds: 11420,
+  uploadedFace: false,
+  uploadedVeh: false,
+  ciVehicle: 'Có xe, nguyên bản',
+  ciTest: 'Âm tính',
+  ciNote: '',
+  wizardStep: 1,
+  newCCCD: '',
+  newMods: { 'Pô nổ': true },
+  newRisk: 'GC',
+  newPhotos: {},
+  rankingTab: 'ALL'
+};
+
+// ==================== HELPERS ====================
+function showToast(msg) {
+  const root = document.getElementById('toastRoot');
+  root.innerHTML = `
+    <div class="toast-box">
+      <span style="color:#16a34a; font-weight:bold; font-size:16px;">✓</span>
+      <span>${msg}</span>
+    </div>
+  `;
+  setTimeout(() => { root.innerHTML = ''; }, 4500);
+}
+
+function formatScore(score) {
+  if (score >= 90) return { text: 'Xuất sắc', tone: 'success', color: '#16a34a' };
+  if (score >= 70) return { text: 'Khá', tone: 'info', color: '#2563eb' };
+  if (score >= 50) return { text: 'Trung bình', tone: 'warning', color: '#d97706' };
+  return { text: 'Kém', tone: 'critical', color: '#dc2626' };
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function formatTime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${pad2(h)}:${pad2(m)}:${pad2(sec)}`;
+}
+
+// Tick timer
+setInterval(() => {
+  if (state.lockCountdownSeconds > 0) {
+    state.lockCountdownSeconds--;
+    const el = document.getElementById('countdownSpan');
+    if (el) el.innerText = formatTime(state.lockCountdownSeconds);
+  }
+}, 1000);
+
+// ==================== RENDER ENGINE ====================
+function render() {
+  const app = document.getElementById('app');
+  if (!state.role) {
+    app.innerHTML = renderLogin();
+  } else {
+    app.innerHTML = renderLayout();
+  }
+  attachEvents();
+}
+
+// 1. LOGIN SCREEN
+function renderLogin() {
+  return `
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #101828; padding: 24px;">
+      <div style="width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px; color: #ffffff;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; box-shadow: 0 4px 12px rgba(231,145,36,0.4);">CA</div>
+          <div>
+            <div style="font-size: 14px; font-weight: 800; letter-spacing: 0.04em;">CÔNG AN TP HÀ TĨNH · CƠ QUAN CSĐT</div>
+            <div style="font-size: 12px; color: #98a2b3;">Hệ thống Quản lý, Điểm danh &amp; Cảnh báo Thanh niên hư (2 Cấp)</div>
+          </div>
+        </div>
+
+        <div style="background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+          <div style="font-size: 18px; font-weight: 800; color: #1a1d26;">Chọn vai trò truy cập hệ thống</div>
+          <div style="font-size: 13px; color: #6b7080; margin-top: 4px;">Mỗi vai trò được phân quyền RBAC và cách ly dữ liệu nghiêm ngặt.</div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+            <!-- CSKV Card -->
+            <div onclick="setRole('CSKV')" class="card card-hover" style="display: flex; align-items: center; gap: 16px; cursor: pointer; border: 1px solid #e5e7eb;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: #fdf4e9; color: #ca791a; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex: none;">CSKV</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 14px; font-weight: 700;">Cán bộ Công an Phường / CSKV</div>
+                <div style="font-size: 12px; color: #6b7080; margin-top: 2px;">Điểm danh ca đêm (22h-06h), ảnh live, xe độ, triệu tập, chấm điểm</div>
+              </div>
+              <span class="badge badge-accent">6 việc</span>
+            </div>
+
+            <!-- LDXA Card -->
+            <div onclick="setRole('LDXA')" class="card card-hover" style="display: flex; align-items: center; gap: 16px; cursor: pointer; border: 1px solid #e5e7eb;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex: none;">LĐ</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 14px; font-weight: 700;">Lãnh đạo Công an Phường / Xã</div>
+                <div style="font-size: 12px; color: #6b7080; margin-top: 2px;">Duyệt hồ sơ, phân công CSKV thụ lý, ký giấy triệu tập, xử lý cảnh báo Tỉnh</div>
+              </div>
+              <span class="badge badge-warning">5 chờ duyệt</span>
+            </div>
+
+            <!-- TINH Card -->
+            <div onclick="setRole('TINH')" class="card card-hover" style="display: flex; align-items: center; gap: 16px; cursor: pointer; border: 1px solid #e5e7eb;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex: none;">TỈNH</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 14px; font-weight: 700;">Công an Cấp Tỉnh / TP Hà Tĩnh</div>
+                <div style="font-size: 12px; color: #6b7080; margin-top: 2px;">Giám sát 6 xã/phường, phát Cảnh báo Tác chiến Ca đêm (22h-06h), Xếp hạng thi đua</div>
+              </div>
+              <span class="badge badge-critical">3 khẩn cấp</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: #667085; text-align: center;">Bản Standalone độc lập v3.0 · Mã hóa AES-256 · Chống sửa lùi SHA-256 Audit Trail</div>
+      </div>
+    </div>
+  `;
+}
+
+// 2. MAIN APP LAYOUT
+function renderLayout() {
+  const isCskv = state.role === 'CSKV';
+  const isLd = state.role === 'LDXA';
+  const isTinh = state.role === 'TINH';
+
+  const user = isCskv
+    ? { name: 'Đại úy Nguyễn Hữu Bình', rank: 'CSKV · Phường Thành Sen', initials: 'NB', scope: '8 đối tượng phụ trách' }
+    : isLd
+    ? { name: 'Trung tá Trần Đình Sơn', rank: 'Trưởng Công an Phường', initials: 'TS', scope: 'Toàn Phường Thành Sen (34 đối tượng)' }
+    : { name: 'Thượng tá Phan Văn Kỳ', rank: 'Phòng CSHS · Công an Tỉnh', initials: 'PK', scope: 'Toàn TP Hà Tĩnh (6 xã/phường · 148 đối tượng)' };
+
+  return `
+    <div style="min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; background: var(--bg-body);">
+      
+      <!-- SIDEBAR -->
+      <aside style="background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; padding: 18px 14px;">
+        <!-- Logo -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 4px 16px; border-bottom: 1px solid #f1f3f7;">
+          <div style="width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">CA</div>
+          <div style="min-width: 0;">
+            <div style="font-size: 13px; font-weight: 800;">Quản lý Thanh niên hư</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">${isTinh ? 'Công an TP Hà Tĩnh' : 'Công an P. Thành Sen'}</div>
+          </div>
+        </div>
+
+        <!-- Scope pill -->
+        <div style="background: var(--bg-panel-alt); border: 1px solid #eef2f7; border-radius: 10px; padding: 8px 12px; margin: 14px 0 10px;">
+          <div style="font-size: 10px; font-weight: 700; color: #98a2b3; letter-spacing: 0.05em;">PHẠM VI QUẢN LÝ</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">${user.scope}</div>
+        </div>
+
+        <!-- Navigation items -->
+        <nav style="display: flex; flex-direction: column; gap: 14px; flex: 1; overflow-y: auto; padding-right: 4px;">
+          ${renderNavMenu()}
+        </nav>
+
+        <!-- User card & Logout -->
+        <div style="border-top: 1px solid #f1f3f7; padding-top: 14px; display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 9999px; background: #f0f1f5; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #6b7080;">${user.initials}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 12px; font-weight: 700;" class="truncate">${user.name}</div>
+            <div style="font-size: 10px; color: var(--text-secondary);" class="truncate">${user.rank}</div>
+          </div>
+          <button onclick="logout()" class="btn btn-ghost btn-sm" style="padding: 4px 6px; color: var(--danger);" title="Đăng xuất">Thoát</button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main style="padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;">
+        ${renderHeader()}
+        ${renderCurrentScreen()}
+      </main>
+
+    </div>
+
+    <!-- MODALS CONTAINER -->
+    ${state.activeModal ? renderModal() : ''}
+  `;
+}
+
+function renderNavMenu() {
+  const isCskv = state.role === 'CSKV';
+  const isLd = state.role === 'LDXA';
+  const isTinh = state.role === 'TINH';
+
+  let groups = [];
+  if (isCskv) {
+    groups = [
+      { label: 'VIỆC CẦN LÀM', items: [
+        { key: 'work', label: 'Việc cần làm', badge: '6' },
+        { key: 'rollcall', label: 'Phiên điểm danh', badge: '3' },
+        { key: 'surprise', label: 'Điểm danh đột xuất' }
+      ]},
+      { label: 'DỮ LIỆU NGHIỆP VỤ', items: [
+        { key: 'profiles', label: 'Hồ sơ đối tượng' },
+        { key: 'newProfile', label: 'Khởi tạo hồ sơ xe độ' },
+        { key: 'scoring', label: 'Chấm điểm & Triệu tập' },
+        { key: 'rules', label: 'Bảng quy tắc điểm' },
+        { key: 'discharge', label: 'Kết thúc & Chuyển tiếp' }
+      ]},
+      { label: 'HỆ THỐNG', items: [
+        { key: 'reports', label: 'Mẫu in nghiệp vụ' },
+        { key: 'notify', label: 'Thông báo & Nhắc việc' },
+        { key: 'account', label: 'Tài khoản cán bộ' }
+      ]}
+    ];
+  } else if (isLd) {
+    groups = [
+      { label: 'ĐIỀU HÀNH XÃ', items: [
+        { key: 'work', label: 'Việc cần làm', badge: '5' },
+        { key: 'approve', label: 'Chờ tôi phê duyệt', badge: '3' },
+        { key: 'alerts', label: 'Cảnh báo ca đêm (22h-06h)', badge: '2' }
+      ]},
+      { label: 'DỮ LIỆU NGHIỆP VỤ', items: [
+        { key: 'rollcall', label: 'Phiên điểm danh (Khóa 24h)' },
+        { key: 'profiles', label: 'Hồ sơ đối tượng' },
+        { key: 'assign', label: 'Phân công cán bộ thụ lý' }
+      ]},
+      { label: 'GIÁM SÁT', items: [
+        { key: 'audit', label: 'Nhật ký hệ thống SHA-256' },
+        { key: 'reports', label: 'Mẫu in nghiệp vụ' }
+      ]}
+    ];
+  } else {
+    groups = [
+      { label: 'CHỈ HUY TOÀN TỈNH', items: [
+        { key: 'overview', label: 'Tổng quan toàn TP', badge: '6 xã' },
+        { key: 'alerts', label: 'Phát Cảnh báo Ca đêm (22h-06h)', badge: 'Khẩn' },
+        { key: 'ranking', label: 'Bảng xếp hạng thi đua' }
+      ]},
+      { label: 'DỮ LIỆU NGHIỆP VỤ', items: [
+        { key: 'profiles', label: 'Tra cứu hồ sơ & Xe độ toàn tỉnh' }
+      ]},
+      { label: 'GIÁM SÁT AN NINH', items: [
+        { key: 'audit', label: 'Nhật ký Audit Trail SHA-256' },
+        { key: 'reports', label: 'Báo cáo thi đua & Mẫu in' }
+      ]}
+    ];
+  }
+
+  return groups.map(g => `
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <div style="font-size: 10px; font-weight: 700; color: #98a2b3; padding: 4px 8px; letter-spacing: 0.05em;">${g.label}</div>
+      ${g.items.map(it => {
+        const active = state.screen === it.key;
+        return `
+          <div onclick="navigate('${it.key}')" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; ${active ? 'background: var(--accent-soft); color: var(--accent-hover); font-weight: 700; border-left: 3px solid var(--accent);' : 'color: #4b5563; font-weight: 500;'}" onmouseover="if(!${active})this.style.background='#f3f4f6'" onmouseout="if(!${active})this.style.background='transparent'">
+            <span class="truncate">${it.label}</span>
+            ${it.badge ? `<span class="badge ${it.key === 'alerts' ? 'badge-critical' : 'badge-accent'}" style="font-size: 10px; padding: 1px 6px;">${it.badge}</span>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+function renderHeader() {
+  const titles = {
+    work: ['Việc cần làm hôm nay', 'Danh sách nhiệm vụ tác chiến, điểm danh và phê duyệt'],
+    rollcall: ['Phiên điểm danh theo Ngày', 'Khung giờ đêm 22h00 – 06h00 · Tự động khóa cứng sau 24h'],
+    surprise: ['Điểm danh đột xuất', 'Kích hoạt kiểm tra khẩn cấp theo lệnh điều hành từ Tỉnh/Xã'],
+    profiles: ['Hồ sơ đối tượng & Phương tiện xe độ', 'Quản lý lý lịch nhân thân, ảnh CCCD, đặc điểm độ pô/nòng/yếm'],
+    newProfile: ['Khởi tạo hồ sơ thanh niên hư mới', 'Quy trình 3 bước: Nhân thân, Phương tiện & ảnh, Đề xuất phân loại'],
+    scoring: ['Chấm điểm rèn luyện & Triệu tập', 'Quỹ điểm 100đ/tháng · Triệu tập theo Tuần (+ Tuần) & Ngày 15 (+ Ngày 15)'],
+    rules: ['Bảng quy tắc điểm rèn luyện (BR-M04)', 'Danh mục trừ điểm vi phạm và cộng điểm thưởng tiến bộ'],
+    discharge: ['Xem xét kết thúc & Chuyển tiếp (BR-M05)', 'Đưa ra khỏi diện (≥ 90đ liên tục 3 tháng) hoặc chuyển xử lý nghiêm khắc'],
+    approve: ['Nội dung chờ Lãnh đạo phê duyệt', 'Phê duyệt hồ sơ mới, Lệnh triệu tập và Ký duyệt chốt sổ điểm danh'],
+    alerts: state.role === 'TINH' ? ['Trung tâm Phát Cảnh báo Ca đêm (22h-06h)', 'Phát lệnh chỉ đạo tác chiến khẩn cấp xuống 6 xã/phường · SLA 60p/120p'] : ['Cảnh báo tác chiến từ Công an Tỉnh', 'Tiếp nhận chỉ đạo, điều động tuần tra và nộp Báo cáo phản hồi trước hạn SLA'],
+    assign: ['Phân công Cán bộ CSKV thụ lý hồ sơ', 'Chỉ định CSKV quản lý theo Thôn/Tổ dân phố & Cấu hình ca trực ca đêm'],
+    overview: ['Tổng quan tình hình An ninh toàn TP', 'Giám sát 6 xã/phường, tỷ lệ điểm danh đêm và Heatmap điểm nóng'],
+    ranking: ['Bảng Xếp hạng Thi đua Điểm danh & Tuần tra', 'Đánh giá thi đua các xã theo tỷ lệ hoàn thành ca đêm và SLA'],
+    audit: ['Nhật ký Hệ thống Bất biến (Audit Trail)', 'Lưu vết toàn bộ thao tác với mã băm chuỗi khối SHA-256'],
+    reports: ['Mẫu in nghiệp vụ chuẩn CAND', 'Kết xuất Phiếu điểm danh, Sơ yếu lý lịch xe độ, Giấy triệu tập (Word/PDF)'],
+    notify: ['Thông báo & Nhắc việc hệ thống', 'Cảnh báo SLA, nhắc điểm danh và biến động hồ sơ'],
+    account: ['Tài khoản Cán bộ & Bảo mật RBAC', 'Thông tin số hiệu CAND, đổi mật khẩu và quản lý phiên đăng nhập']
+  };
+
+  const curr = titles[state.screen] || ['Bảng điều khiển', ''];
+
+  let headerAction = '';
+  if (state.screen === 'rollcall') {
+    headerAction = `<button onclick="exportDoc('Mẫu in 01 - Phiếu điểm danh ngày')" class="btn btn-secondary btn-sm">Xuất File in Phiên</button>`;
+  } else if (state.screen === 'profiles' && state.role === 'CSKV') {
+    headerAction = `<button onclick="navigate('newProfile')" class="btn btn-primary btn-sm">+ Khởi tạo hồ sơ mới</button>`;
+  } else if (state.screen === 'alerts' && state.role === 'TINH') {
+    headerAction = `<button onclick="openNewAlertModal()" class="btn btn-danger btn-sm pulse-danger">+ Phát cảnh báo mới (22h-06h)</button>`;
+  } else if (state.screen === 'ranking') {
+    headerAction = `<button onclick="exportDoc('Báo cáo Thi đua Toàn tỉnh')" class="btn btn-secondary btn-sm">Xuất Báo cáo Thi đua (Excel)</button>`;
+  }
+
+  return `
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 22px; font-weight: 800; color: #1a1d26;">${curr[0]}</div>
+        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 3px;">${curr[1]}</div>
+      </div>
+      <div>${headerAction}</div>
+    </div>
+  `;
+}
+
+// 3. SCREEN DISPATCHER
+function renderCurrentScreen() {
+  switch (state.screen) {
+    case 'work': return renderWorkScreen();
+    case 'rollcall': return renderRollcallScreen();
+    case 'profiles': return renderProfilesScreen();
+    case 'newProfile': return renderNewProfileScreen();
+    case 'scoring': return renderScoringScreen();
+    case 'approve': return renderApproveScreen();
+    case 'alerts': return renderAlertsScreen();
+    case 'assign': return renderAssignScreen();
+    case 'overview': return renderOverviewScreen();
+    case 'ranking': return renderRankingScreen();
+    case 'audit': return renderAuditScreen();
+    case 'reports': return renderReportsScreen();
+    case 'rules': return renderRulesScreen();
+    case 'discharge': return renderDischargeScreen();
+    case 'notify': return renderNotifyScreen();
+    case 'account': return renderAccountScreen();
+    default: return renderWorkScreen();
+  }
+}
+
+// SCREEN: WORK / VIỆC CẦN LÀM
+function renderWorkScreen() {
+  const isCskv = state.role === 'CSKV';
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- Banner ca đêm -->
+      <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: var(--radius-lg); padding: 18px 22px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.15);">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #fbbf24; letter-spacing: 0.06em; text-transform: uppercase;">KHUNG GIỜ TÁC CHIẾN ĐÊM (22H00 - 06H00)</div>
+          <div style="font-size: 16px; font-weight: 800; margin-top: 4px;">Phiên ca đêm ngày 29/08/2026 đang mở</div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Tự động khóa cứng sau 24h · Vắng mặt không phép tự động kích hoạt Cảnh báo đỏ</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">THỜI GIAN CÒN LẠI TRƯỚC KHÓA 24H</div>
+          <div id="countdownSpan" style="font-family: var(--font-mono); font-size: 22px; font-weight: 800; color: #fbbf24;">${formatTime(state.lockCountdownSeconds)}</div>
+        </div>
+      </div>
+
+      <!-- Danh sách công việc -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 800;">Nhiệm vụ ưu tiên trong ca trực</div>
+        ${DB.alerts.filter(a => a.state === 'open').map(a => `
+          <div class="card" style="border-left: 4px solid var(--danger); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 14px; font-weight: 700;">${a.title}</span>
+                <span class="badge badge-critical">${a.level}</span>
+                ${a.auto ? '<span class="badge badge-warning">Tự động 22:00-06:00</span>' : '<span class="badge badge-muted">Từ Công an Tỉnh</span>'}
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${a.code} · ${a.commune} · ${a.desc}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="text-align: right;">
+                <div style="font-size: 10px; color: var(--text-muted);">HẠN SLA</div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--danger); font-family: var(--font-mono);">${a.sla}</div>
+              </div>
+              <button onclick="openAlertModal('${a.code}')" class="btn btn-primary btn-sm">${isCskv ? 'Kiểm tra đột xuất' : 'Tiếp nhận & Phản hồi'}</button>
+            </div>
+          </div>
+        `).join('')}
+
+        <!-- Đối tượng cần điểm danh -->
+        ${DB.objects.filter(o => o.roll === 'pending').map(o => `
+          <div class="card" style="border-left: 4px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px; font-weight: 700;">${o.name}</span>
+                <span class="badge ${o.cls === 'GC' ? 'badge-critical' : 'badge-warning'}">${o.cls === 'GC' ? 'ĐTNGC' : 'ĐTNCT'}</span>
+                <span class="badge badge-muted">${o.hamlet}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Xe: ${o.plate} (${o.vehicle}) · Cán bộ phụ trách: ${o.officer}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="text-align: right;">
+                <div style="font-size: 10px; color: var(--text-muted);">ĐIỂM RÈN LUYỆN</div>
+                <div style="font-size: 13px; font-weight: 700; color: ${formatScore(o.score).color};">${o.score}đ</div>
+              </div>
+              <button onclick="openCheckinModal('${o.code}')" class="btn btn-primary btn-sm">Điểm danh ngay</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: ROLLCALL / PHIÊN ĐIỂM DANH (22H - 06H - KHÓA 24H)
+function renderRollcallScreen() {
+  const currentSession = DB.sessions.find(s => s.date === state.selectedDate) || DB.sessions[DB.sessions.length - 1];
+  const isLocked = currentSession.locked;
+
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- Lịch chọn ngày -->
+      <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 14px 18px; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; overflow-x: auto;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); flex: none; margin-right: 6px;">CHỌN NGÀY:</div>
+        ${DB.sessions.map(s => {
+          const on = s.date === state.selectedDate;
+          return `
+            <div onclick="selectRollcallDate('${s.date}')" style="flex: none; width: 90px; text-align: center; padding: 8px 6px; border-radius: 10px; cursor: pointer; ${on ? 'background: var(--accent-soft); border: 1px solid var(--accent);' : 'background: var(--bg-panel-alt); border: 1px solid #eef2f7;'}">
+              <div style="font-size: 11px; font-weight: 700; color: ${on ? 'var(--accent-hover)' : '#98a2b3'};">${s.wd} · ${s.date}</div>
+              <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">${Math.round((s.done / s.total) * 100)}%</div>
+              <div style="font-size: 10px; color: ${s.locked ? '#98a2b3' : '#16a34a'}; font-weight: 600; margin-top: 1px;">${s.locked ? 'Đã khóa 24h' : 'Đang mở'}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Tình trạng phiên -->
+      <div style="background: ${isLocked ? '#f3f4f6' : '#fdf4e9'}; border: 1px solid ${isLocked ? '#d1d5db' : '#f9dfbf'}; border-radius: var(--radius-lg); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="badge ${isLocked ? 'badge-muted' : 'badge-success'}">${isLocked ? 'LOCKED_PERMANENT · CHỈ ĐỌC' : 'OPEN · CHO PHÉP ĐIỂM DANH'}</span>
+          <span style="font-size: 13px; font-weight: 700;">Phiên ca đêm ngày ${currentSession.date}/2026</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">${isLocked ? '(Đã quá 24h, cấm sửa/xóa hồi tố theo BR-M03-01)' : '(Đang trong khung giờ cho phép cập nhật)'}</span>
+        </div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--accent-hover);">
+          Đã điểm danh: ${currentSession.done}/${currentSession.total} đối tượng (${currentSession.absent} vắng mặt)
+        </div>
+      </div>
+
+      <!-- Bảng đối tượng -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Đối tượng & CCCD</th>
+              <th>Địa bàn (TDP)</th>
+              <th>Phân loại</th>
+              <th>Thông tin xe & Lỗi độ</th>
+              <th>Điểm rèn luyện</th>
+              <th>Trạng thái điểm danh</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${DB.objects.map(o => `
+              <tr>
+                <td>
+                  <div style="font-weight: 700;">${o.name}</div>
+                  <div style="font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono);">${o.cccd}</div>
+                </td>
+                <td>${o.hamlet}</td>
+                <td><span class="badge ${o.cls === 'GC' ? 'badge-critical' : 'badge-warning'}">${o.cls === 'GC' ? 'ĐTNGC' : 'ĐTNCT'}</span></td>
+                <td>
+                  <div style="font-weight: 600; font-family: var(--font-mono);">${o.plate}</div>
+                  <div style="font-size: 11px; color: #dc2626;">${o.mods.length ? o.mods.join(', ') : '<span style="color:#16a34a">Nguyên bản</span>'}</div>
+                </td>
+                <td>
+                  <div style="font-weight: 800; color: ${formatScore(o.score).color};">${o.score}đ</div>
+                  <div style="font-size: 10px; color: var(--text-muted);">${formatScore(o.score).text}</div>
+                </td>
+                <td>
+                  ${o.roll === 'present' ? `<span class="badge badge-success">Có mặt (${o.time})</span>` :
+                    o.roll === 'absent' ? `<span class="badge badge-critical">Vắng mặt (${o.time})</span>` :
+                    `<span class="badge badge-muted">Chưa điểm danh</span>`}
+                </td>
+                <td>
+                  <button onclick="openCheckinModal('${o.code}')" class="btn ${isLocked ? 'btn-secondary' : 'btn-primary'} btn-sm">${isLocked ? 'Xem chi tiết' : 'Điểm danh'}</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: OVERVIEW (CÔNG AN TỈNH)
+function renderOverviewScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <!-- KPI Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+        <div class="card">
+          <div style="font-size: 11px; font-weight: 700; color: #98a2b3; text-transform: uppercase;">XÃ, PHƯỜNG THEO DÕI</div>
+          <div style="font-size: 28px; font-weight: 800; margin-top: 6px; color: #1a1d26;">6</div>
+          <div style="font-size: 12px; color: #6b7080;">Toàn TP Hà Tĩnh</div>
+        </div>
+        <div class="card">
+          <div style="font-size: 11px; font-weight: 700; color: #98a2b3; text-transform: uppercase;">TỔNG THANH NIÊN HƯ</div>
+          <div style="font-size: 28px; font-weight: 800; margin-top: 6px; color: var(--accent);">148</div>
+          <div style="font-size: 12px; color: #6b7080;">47 ĐTNGC (31.7%) · 101 ĐTNCT</div>
+        </div>
+        <div class="card">
+          <div style="font-size: 11px; font-weight: 700; color: #98a2b3; text-transform: uppercase;">TỶ LỆ ĐIỂM DANH TOÀN TP</div>
+          <div style="font-size: 28px; font-weight: 800; margin-top: 6px; color: #16a34a;">82%</div>
+          <div style="font-size: 12px; color: #6b7080;">Ca đêm 22h-06h hôm nay</div>
+        </div>
+        <div class="card">
+          <div style="font-size: 11px; font-weight: 700; color: #98a2b3; text-transform: uppercase;">XÃ DƯỚI NGƯỠNG 75%</div>
+          <div style="font-size: 28px; font-weight: 800; margin-top: 6px; color: var(--danger);">2</div>
+          <div style="font-size: 12px; color: #6b7080;">Đã phát cảnh báo đôn đốc</div>
+        </div>
+      </div>
+
+      <!-- Bảng tiến độ 6 xã/phường -->
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div style="font-size: 15px; font-weight: 800;">Tiến độ Điểm danh Ca đêm 6 Xã / Phường</div>
+          <button onclick="openNewAlertModal()" class="btn btn-danger btn-sm pulse-danger">+ Phát Lệnh Tác chiến Đêm (22h-06h)</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Xã / Phường</th>
+                <th>Tổng số ĐT</th>
+                <th>Nguy cơ cao</th>
+                <th>Tỷ lệ ca đêm</th>
+                <th>Vắng mặt</th>
+                <th>SLA Cảnh báo</th>
+                <th>Điểm thi đua</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${DB.communes.map(c => `
+                <tr>
+                  <td style="font-weight: 700;">${c.name}</td>
+                  <td>${c.total}</td>
+                  <td><span class="badge badge-critical">${c.high}</span></td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="flex: 1; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; width: 80px;">
+                        <div style="height: 100%; width: ${c.rate}%; background: ${c.rate >= 85 ? '#16a34a' : c.rate >= 75 ? '#d97706' : '#dc2626'};"></div>
+                      </div>
+                      <span style="font-weight: 700; font-size: 12px;">${c.rate}%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge ${c.absent > 0 ? 'badge-critical' : 'badge-muted'}">${c.absent} ca</span></td>
+                  <td><span style="font-weight: 700; color: #16a34a;">${c.sla}</span></td>
+                  <td><span style="font-weight: 800; color: ${c.points >= 85 ? '#16a34a' : '#d97706'};">${c.points}đ</span></td>
+                  <td>
+                    <button onclick="sendCommuneNudge('${c.name}')" class="btn btn-secondary btn-sm">Bắn Cảnh báo Đôn đốc</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: RANKING (XẾP HẠNG THI ĐUA TOÀN TỈNH)
+function renderRankingScreen() {
+  const sorted = [...DB.communes].sort((a, b) => b.points - a.points);
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div style="font-size: 15px; font-weight: 800; margin-bottom: 4px;">Bảng Xếp hạng Thi đua Điểm danh &amp; Xử lý Cảnh báo Ca đêm</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Phân nhóm đánh giá: Nhóm Xanh (≥ 90đ), Nhóm Vàng (70-89đ), Nhóm Đỏ (&lt; 70đ)</div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Hạng</th>
+                <th>Xã / Phường</th>
+                <th>Tỷ lệ ca đêm</th>
+                <th>Xử lý SLA đúng hạn</th>
+                <th>Điểm thi đua</th>
+                <th>Phân loại nhóm</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sorted.map((c, i) => {
+                const group = c.points >= 90 ? { name: 'Nhóm Xanh (Xuất sắc)', badge: 'badge-success' } :
+                              c.points >= 70 ? { name: 'Nhóm Vàng (Đạt)', badge: 'badge-warning' } :
+                              { name: 'Nhóm Đỏ (Cảnh báo)', badge: 'badge-critical' };
+                return `
+                  <tr>
+                    <td>
+                      <div style="width: 28px; height: 28px; border-radius: 9999px; background: ${i === 0 ? '#fbbf24' : i === 1 ? '#e5e7eb' : i === 2 ? '#d97706' : '#f3f4f6'}; color: #1a1d26; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">${i + 1}</div>
+                    </td>
+                    <td style="font-weight: 700;">${c.name}</td>
+                    <td><span style="font-weight: 800;">${c.rate}%</span></td>
+                    <td><span style="font-weight: 700; color: #16a34a;">${c.sla}</span></td>
+                    <td><span style="font-size: 16px; font-weight: 800; color: ${c.points >= 90 ? '#16a34a' : c.points >= 70 ? '#d97706' : '#dc2626'};">${c.points}đ</span></td>
+                    <td><span class="badge ${group.badge}">${group.name}</span></td>
+                    <td>
+                      <button onclick="sendCommuneNudge('${c.name}')" class="btn btn-secondary btn-sm">${c.points < 70 ? 'Bắn Báo động Đỏ' : 'Đôn đốc'}</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: ALERTS (CẢNH BÁO CA ĐÊM 22H - 06H)
+function renderAlertsScreen() {
+  const isTinh = state.role === 'TINH';
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 14px; font-weight: 800;">${isTinh ? 'Danh sách Lệnh tác chiến đêm đã phát' : 'Cảnh báo tác chiến nhận từ Công an Tỉnh'}</div>
+        ${isTinh ? `<button onclick="openNewAlertModal()" class="btn btn-danger btn-sm pulse-danger">+ Phát Lệnh Tác chiến Mới</button>` : ''}
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${DB.alerts.map(a => `
+          <div class="card" style="border-left: 4px solid ${a.state === 'done' ? '#16a34a' : '#dc2626'};">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 240px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 14px; font-weight: 700;">${a.title}</span>
+                  <span class="badge ${a.tone === 'critical' ? 'badge-critical' : 'badge-warning'}">${a.level}</span>
+                  ${a.auto ? '<span class="badge badge-warning">Tự động 22h-06h</span>' : '<span class="badge badge-muted">Tỉnh phát lệnh</span>'}
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${a.code} · ${a.commune} · ${a.desc}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="text-align: right;">
+                  <div style="font-size: 10px; color: var(--text-muted);">SLA XỬ LÝ</div>
+                  <div style="font-size: 13px; font-weight: 700; color: ${a.state === 'done' ? '#16a34a' : '#dc2626'}; font-family: var(--font-mono);">${a.state === 'done' ? 'ĐÃ HOÀN TẤT' : a.sla}</div>
+                </div>
+                <button onclick="openAlertModal('${a.code}')" class="btn ${a.state === 'done' ? 'btn-secondary' : 'btn-primary'} btn-sm">${isTinh ? 'Xem tiến độ' : a.state === 'done' ? 'Xem báo cáo' : 'Tiếp nhận & Phản hồi'}</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: ASSIGN (PHÂN CÔNG CSKV THỤ LÝ)
+function renderAssignScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 15px; font-weight: 800;">Bảng Phân công Cán bộ CSKV Thụ lý Hồ sơ (Lãnh đạo phê duyệt)</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Gán quyền Data Scope 1-1 cho Cán bộ CSKV và thiết lập tần suất ca điểm danh ca đêm</div>
+          </div>
+          <button onclick="saveAssignments()" class="btn btn-primary btn-sm">Lưu &amp; Phê duyệt Phân công</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Đối tượng</th>
+                <th>Địa bàn (TDP)</th>
+                <th>Phân loại</th>
+                <th>Tần suất ca đêm</th>
+                <th>Cán bộ CSKV phụ trách</th>
+                <th>Trạng thái vào ca</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${DB.objects.map(o => `
+                <tr>
+                  <td style="font-weight: 700;">${o.name}</td>
+                  <td>${o.hamlet}</td>
+                  <td><span class="badge ${o.cls === 'GC' ? 'badge-critical' : 'badge-warning'}">${o.cls === 'GC' ? 'ĐTNGC' : 'ĐTNCT'}</span></td>
+                  <td>${o.cls === 'GC' ? 'Hàng ngày (22h-06h)' : 'Định kỳ 2 lần/tuần'}</td>
+                  <td>
+                    <select onchange="changeOfficer('${o.code}', this.value)" class="form-control" style="padding: 5px 8px; font-size: 12px; width: 200px;">
+                      <option value="Đại úy Nguyễn Hữu Bình" ${o.officer.includes('Bình') ? 'selected' : ''}>Đại úy Nguyễn Hữu Bình</option>
+                      <option value="Thượng úy Lê Văn Hòa" ${o.officer.includes('Hòa') ? 'selected' : ''}>Thượng úy Lê Văn Hòa</option>
+                    </select>
+                  </td>
+                  <td><span class="badge ${o.state === 'active' ? 'badge-success' : 'badge-warning'}">${o.state === 'active' ? 'Đã vào ca trực' : 'Chờ phê duyệt'}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: PROFILES (HỒ SƠ ĐỐI TƯỢNG)
+function renderProfilesScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="text" placeholder="Tìm nhanh theo tên, CCCD hoặc biển số xe..." class="form-control" style="max-width: 320px;" oninput="filterObjects(this.value)">
+        <select class="form-control" style="width: 180px;">
+          <option>Tất cả phân loại</option>
+          <option>ĐTNGC - Nguy cơ cao</option>
+          <option>ĐTNCT - Nguy cơ thường</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mã &amp; Họ tên</th>
+              <th>Năm sinh</th>
+              <th>Số CCCD</th>
+              <th>Biển số &amp; Xe</th>
+              <th>Lỗi độ chế</th>
+              <th>Điểm rèn luyện</th>
+              <th>Cán bộ thụ lý</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${DB.objects.map(o => `
+              <tr>
+                <td>
+                  <div style="font-weight: 700;">${o.name}</div>
+                  <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${o.code}</div>
+                </td>
+                <td>${o.birth}</td>
+                <td style="font-family: var(--font-mono);">${o.cccd}</td>
+                <td>
+                  <div style="font-weight: 600; font-family: var(--font-mono);">${o.plate}</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">${o.vehicle}</div>
+                </td>
+                <td>
+                  ${o.mods.length ? o.mods.map(m => `<span class="badge badge-critical" style="margin-right:2px; font-size:10px;">${m}</span>`).join('') : '<span class="badge badge-success">Không có lỗi</span>'}
+                </td>
+                <td>
+                  <div style="font-weight: 800; color: ${formatScore(o.score).color};">${o.score}đ</div>
+                </td>
+                <td style="font-size: 12px;">${o.officer}</td>
+                <td>
+                  <button onclick="openProfileModal('${o.code}')" class="btn btn-secondary btn-sm">Xem hồ sơ</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: SCORING (CHẤM ĐIỂM & TRIỆU TẬP)
+function renderScoringScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card" style="background: #fdf4e9; border: 1px solid #f9dfbf;">
+        <div style="font-size: 14px; font-weight: 800; color: var(--accent-hover);">Quy tắc Triệu tập Đối tượng &amp; Đại diện Hộ Gia đình (BR-M04)</div>
+        <div style="font-size: 12px; color: #92400e; margin-top: 4px;">
+          • <strong>Theo Tuần (+ Tuần)</strong>: Triệu tập hàng tuần đối với đối tượng nhóm <strong>ĐTNGC</strong> (Nguy cơ cao).<br>
+          • <strong>Định kỳ Ngày 15 (+ Ngày 15)</strong>: Triệu tập định kỳ ngày 15 hàng tháng kèm <strong>Đại diện Hộ gia đình/Người giám hộ</strong>.<br>
+          • <strong>Đột xuất</strong>: Kích hoạt khi điểm rèn luyện &lt; 50đ hoặc vắng mặt điểm danh đêm 22h-06h.
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Đối tượng</th>
+              <th>Điểm hiện tại</th>
+              <th>Diện triệu tập</th>
+              <th>Đại diện gia đình</th>
+              <th>Lý do triệu tập</th>
+              <th>Trạng thái Lệnh triệu tập</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${DB.objects.map(o => {
+              const summonType = o.score < 50 ? 'Đột xuất (Điểm < 50)' : o.cls === 'GC' ? 'Theo Tuần (+ Tuần)' : 'Định kỳ Ngày 15 (+ Ngày 15)';
+              return `
+                <tr>
+                  <td>
+                    <div style="font-weight: 700;">${o.name}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${o.hamlet} · ${o.plate}</div>
+                  </td>
+                  <td><span style="font-size: 15px; font-weight: 800; color: ${formatScore(o.score).color};">${o.score}đ</span></td>
+                  <td><span class="badge ${o.score < 50 ? 'badge-critical' : o.cls === 'GC' ? 'badge-accent' : 'badge-info'}">${summonType}</span></td>
+                  <td style="font-size: 12px;">${o.family.includes('bà') ? 'Bà nội (Giám hộ)' : 'Bố / Mẹ'}</td>
+                  <td style="font-size: 12px; color: var(--text-secondary);">${o.reason}</td>
+                  <td><span class="badge badge-warning">Chờ Lãnh đạo ký</span></td>
+                  <td>
+                    <button onclick="openSummonsModal('${o.code}')" class="btn btn-primary btn-sm">Lập Giấy triệu tập</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: APPROVE (LÃNH ĐẠO DUYỆT)
+function renderApproveScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div style="font-size: 15px; font-weight: 800; margin-bottom: 4px;">Danh sách Hồ sơ &amp; Lệnh triệu tập chờ Lãnh đạo Xã phê duyệt</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">Thẩm định thông tin nhân thân, biển số xe độ và ký phê duyệt đưa vào diện quản lý</div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Hồ sơ / Giấy triệu tập</th>
+                <th>Cán bộ đề xuất</th>
+                <th>Thông tin xe độ</th>
+                <th>Nội dung phê duyệt</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${DB.objects.filter(o => o.state === 'pending').map(o => `
+                <tr>
+                  <td>
+                    <div style="font-weight: 700;">Hồ sơ đối tượng ${o.name}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${o.code} · TDP: ${o.hamlet} · CCCD: ${o.cccd}</div>
+                  </td>
+                  <td>${o.officer}</td>
+                  <td>
+                    <div style="font-weight: 600; font-family: var(--font-mono);">${o.plate}</div>
+                    <div style="font-size: 11px; color: #dc2626;">${o.mods.join(', ')}</div>
+                  </td>
+                  <td>Đề xuất phân loại: <span class="badge badge-critical">ĐTNGC</span></td>
+                  <td>
+                    <button onclick="approveProfile('${o.code}')" class="btn btn-primary btn-sm">Phê duyệt &amp; Giao hồ sơ</button>
+                  </td>
+                </tr>
+              `).join('')}
+              <tr>
+                <td>
+                  <div style="font-weight: 700;">Chốt sổ Phiên điểm danh Ca đêm 28/08</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">Hoàn thành 8/8 đối tượng · 0 vi phạm · Khóa cứng 24h</div>
+                </td>
+                <td>Hệ thống tự động</td>
+                <td>—</td>
+                <td>Ký duyệt chốt phiên lưu CSDL</td>
+                <td>
+                  <button onclick="approveSessionClose()" class="btn btn-secondary btn-sm">Ký duyệt chốt sổ</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: AUDIT TRAIL
+function renderAuditScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 15px; font-weight: 800;">Nhật ký Vết Hệ thống Bất biến (SHA-256 Hash Chaining)</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Toàn bộ hành vi Điểm danh, Khóa 24h, Phê duyệt đều được tính toán mã băm chuỗi khối chống chối bỏ</div>
+        </div>
+        <button onclick="verifyAuditChain()" class="btn btn-primary btn-sm">Kiểm tra Chuỗi Băm Hash</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Cán bộ thực hiện</th>
+              <th>Hành vi nghiệp vụ</th>
+              <th>Bản ghi tác động</th>
+              <th>Mã băm SHA-256</th>
+              <th>Trạng thái toàn vẹn</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${DB.audit.map(a => `
+              <tr>
+                <td style="font-family: var(--font-mono); font-size: 12px;">${a.time}</td>
+                <td style="font-weight: 600;">${a.officer}</td>
+                <td><span class="badge badge-accent">${a.action}</span></td>
+                <td style="font-family: var(--font-mono); font-weight: 600;">${a.target}</td>
+                <td style="font-family: var(--font-mono); font-size: 11px; color: #6b7080;">${a.hash}</td>
+                <td><span class="badge badge-success">✓ Hợp lệ</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: NEW PROFILE (KHỞI TẠO HỒ SƠ 3 BƯỚC)
+function renderNewProfileScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 18px; max-width: 800px;">
+      <!-- Step bar -->
+      <div style="display: flex; align-items: center; gap: 10px; background: #ffffff; padding: 14px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: ${state.wizardStep >= 1 ? 'var(--accent)' : '#98a2b3'};">
+          <span style="width:22px; height:22px; border-radius:9999px; background:${state.wizardStep >= 1 ? 'var(--accent)' : '#e5e7eb'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;">1</span>
+          1. Nhân thân &amp; CCCD
+        </div>
+        <span style="color:#d1d5db;">→</span>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: ${state.wizardStep >= 2 ? 'var(--accent)' : '#98a2b3'};">
+          <span style="width:22px; height:22px; border-radius:9999px; background:${state.wizardStep >= 2 ? 'var(--accent)' : '#e5e7eb'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;">2</span>
+          2. Phương tiện &amp; Xe độ
+        </div>
+        <span style="color:#d1d5db;">→</span>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: ${state.wizardStep >= 3 ? 'var(--accent)' : '#98a2b3'};">
+          <span style="width:22px; height:22px; border-radius:9999px; background:${state.wizardStep >= 3 ? 'var(--accent)' : '#e5e7eb'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;">3</span>
+          3. Đề xuất Phân loại &amp; Nộp
+        </div>
+      </div>
+
+      <!-- Step Content -->
+      <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+        ${state.wizardStep === 1 ? `
+          <div style="font-size: 15px; font-weight: 800;">Bước 1: Thông tin nhân thân &amp; Hoàn cảnh gia đình</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="form-label">Họ và tên đối tượng *</label>
+              <input type="text" class="form-control" placeholder="VD: Nguyễn Văn Huy" value="Nguyễn Văn Huy">
+            </div>
+            <div>
+              <label class="form-label">Số CCCD (12 số) *</label>
+              <input type="text" class="form-control" placeholder="04209800xxxx" value="042098005678">
+            </div>
+            <div>
+              <label class="form-label">Năm sinh *</label>
+              <input type="text" class="form-control" value="2007">
+            </div>
+            <div>
+              <label class="form-label">Tổ dân phố / Thôn cư trú *</label>
+              <select class="form-control"><option>TDP 1</option><option>TDP 2</option><option>TDP 4</option></select>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Hoàn cảnh gia đình &amp; Người giám hộ</label>
+            <input type="text" class="form-control" value="Bố mẹ đi làm xa, sống cùng ông bà nội">
+          </div>
+        ` : state.wizardStep === 2 ? `
+          <div style="font-size: 15px; font-weight: 800;">Bước 2: Thông tin Phương tiện &amp; Lỗi độ chế kết cấu</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="form-label">Biển số xe *</label>
+              <input type="text" class="form-control" value="38-K1 889.92">
+            </div>
+            <div>
+              <label class="form-label">Hãng xe &amp; Loại xe *</label>
+              <input type="text" class="form-control" value="Honda Wave Alpha (Đỏ đen)">
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Danh mục lỗi độ chế phát hiện:</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span class="badge badge-critical" style="padding: 6px 12px; font-size: 12px; cursor: pointer;">✓ Pô nổ (Độ pô)</span>
+              <span class="badge badge-critical" style="padding: 6px 12px; font-size: 12px; cursor: pointer;">✓ Tháo yếm</span>
+              <span class="badge badge-muted" style="padding: 6px 12px; font-size: 12px; cursor: pointer;">+ Đôn nòng</span>
+              <span class="badge badge-muted" style="padding: 6px 12px; font-size: 12px; cursor: pointer;">+ Hạ phuộc</span>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Album 6 ảnh nhận dạng (Chân dung, CCCD, Xe 4 góc):</label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+              <div style="border: 1px dashed #16a34a; background: #f0fdf4; border-radius: 10px; padding: 14px; text-align: center; font-size: 11px; font-weight: 700; color: #16a34a;">✓ Ảnh chân dung</div>
+              <div style="border: 1px dashed #16a34a; background: #f0fdf4; border-radius: 10px; padding: 14px; text-align: center; font-size: 11px; font-weight: 700; color: #16a34a;">✓ CCCD 2 mặt</div>
+              <div style="border: 1px dashed #16a34a; background: #f0fdf4; border-radius: 10px; padding: 14px; text-align: center; font-size: 11px; font-weight: 700; color: #16a34a;">✓ Ảnh xe &amp; Pô độ</div>
+            </div>
+          </div>
+        ` : `
+          <div style="font-size: 15px; font-weight: 800;">Bước 3: Đề xuất Phân loại đối tượng &amp; Nộp trình duyệt</div>
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px; color: #7f1d1d; font-size: 13px;">
+            <strong>Gợi ý hệ thống:</strong> Đối tượng có phương tiện độ <strong>Pô nổ</strong> và <strong>Tháo yếm</strong>, thường xuyên tụ tập đêm $\rightarrow$ Đề xuất xếp vào diện <strong>ĐTNGC (Nguy cơ cao)</strong>.
+          </div>
+          <div>
+            <label class="form-label">Phân loại đề xuất *</label>
+            <select class="form-control"><option selected>ĐTNGC — Đối tượng nguy cơ cao (Điểm danh hàng ngày 22h-06h)</option><option>ĐTNCT — Đối tượng nguy cơ thường</option></select>
+          </div>
+        `}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; border-top: 1px solid #f1f3f7; padding-top: 14px;">
+          <button onclick="wizardPrev()" class="btn btn-secondary btn-sm" ${state.wizardStep === 1 ? 'disabled' : ''}>Quay lại</button>
+          <button onclick="wizardNext()" class="btn btn-primary btn-sm">${state.wizardStep === 3 ? 'Nộp Trình duyệt Lãnh đạo Xã' : 'Tiếp tục'}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: REPORTS (MẪU IN NGHIỆP VỤ)
+function renderReportsScreen() {
+  const forms = [
+    { code: 'MẪU IN 01', format: 'PDF/A', title: 'Phiếu Điểm danh Ca đêm theo Ngày', desc: 'Danh sách đối tượng trong ca đêm 22h-06h, kết quả kiểm tra, ảnh Zalo, chữ ký cán bộ.' },
+    { code: 'MẪU IN 02', format: 'Word (.docx) / PDF', title: 'Sơ yếu Lý lịch Đối tượng & Xe độ chế', desc: 'Lý lịch nhân thân, hoàn cảnh gia đình, thông tin phương tiện và album ảnh xe đa góc.' },
+    { code: 'MẪU IN 03', format: 'Word (.docx) / PDF', title: 'Giấy Triệu tập & Biên bản Cam kết Hộ gia đình', desc: 'Giấy triệu tập theo Tuần / Ngày 15, Biên bản làm việc và Bản cam kết hoàn nguyên xe zin (+1 Mục).' },
+    { code: 'MẪU IN 04', format: 'Excel (.xlsx) / PDF', title: 'Báo cáo Tổng hợp Thi đua Điểm danh Toàn tỉnh', desc: 'Bảng xếp hạng 6 xã/phường, tỷ lệ điểm danh đêm, kết quả SLA cảnh báo và điểm thi đua.' }
+  ];
+
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
+        ${forms.map(f => `
+          <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span class="badge badge-accent">${f.code}</span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${f.format}</span>
+              </div>
+              <div style="font-size: 15px; font-weight: 700; margin-top: 8px;">${f.title}</div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.6;">${f.desc}</div>
+            </div>
+            <button onclick="exportDoc('${f.title}')" class="btn btn-secondary btn-sm" style="width: 100%;">Kết xuất File in có Watermark</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: RULES (BẢNG QUY TẮC ĐIỂM)
+function renderRulesScreen() {
+  const demerits = [
+    { label: 'Vắng mặt điểm danh không phép trong ca đêm 22h-06h', code: 'PEN_ABSENT', delta: '-20đ' },
+    { label: 'Có mặt muộn quá 30 phút so với giờ hẹn điểm danh', code: 'PEN_LATE', delta: '-5đ' },
+    { label: 'Phát hiện lỗi độ chế mới (Pô nổ, Đôn nòng, Tháo yếm...)', code: 'PEN_MOD', delta: '-15đ' },
+    { label: 'Test nhanh ma túy / chất kích thích dương tính', code: 'PEN_DRUG', delta: '-25đ' },
+    { label: 'Không có mặt theo Giấy triệu tập (không có lý do)', code: 'PEN_NO_SHOW', delta: '-10đ' }
+  ];
+  const bonuses = [
+    { label: 'Điểm danh đầy đủ, đúng giờ 7 ngày liên tục', code: 'BON_7DAYS', delta: '+5đ' },
+    { label: 'Tự giác tháo pô nổ, hoàn nguyên xe zin theo cam kết', code: 'BON_RESTORE', delta: '+10đ' },
+    { label: 'Có việc làm ổn định hoặc đi học đầy đủ trong tháng', code: 'BON_JOB', delta: '+5đ' }
+  ];
+
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="card">
+          <div style="font-size: 14px; font-weight: 800; color: var(--danger); margin-bottom: 10px;">Danh mục Trừ điểm Vi phạm (Demerit Rules)</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${demerits.map(d => `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f3f7; font-size: 12px;">
+                <span>${d.label}</span>
+                <span style="font-weight: 800; color: var(--danger);">${d.delta}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size: 14px; font-weight: 800; color: var(--success); margin-bottom: 10px;">Danh mục Cộng điểm Rèn luyện (Bonus Rules)</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${bonuses.map(b => `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f3f7; font-size: 12px;">
+                <span>${b.label}</span>
+                <span style="font-weight: 800; color: var(--success);">${b.delta}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: DISCHARGE (XÉT ĐƯA RA KHỎI DIỆN)
+function renderDischargeScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div style="font-size: 15px; font-weight: 800; margin-bottom: 4px;">Xét Đưa ra khỏi Diện Quản lý &amp; Chuyển tiếp Xử lý (BR-M05)</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">
+          • <strong>Đưa ra khỏi diện</strong>: Đối tượng đạt điểm rèn luyện ≥ 90đ liên tục 3 tháng, không vi phạm ca đêm, đã hoàn nguyên xe zin.<br>
+          • <strong>Chuyển xử lý nghiêm khắc</strong>: Tái phạm nhiều lần, điểm &lt; 40đ, chuyển cơ quan CSĐT hoặc trường giáo dưỡng.
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Đối tượng</th>
+                <th>Điểm hiện tại</th>
+                <th>Tình trạng vi phạm ca đêm</th>
+                <th>Tình trạng xe độ</th>
+                <th>Đề xuất xử lý</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700;">Nguyễn Đức Thắng</td>
+                <td><span style="font-weight: 800; color: #16a34a; font-size: 15px;">93đ</span></td>
+                <td><span class="badge badge-success">Không vi phạm (3 tháng)</span></td>
+                <td><span class="badge badge-success">Đã hoàn nguyên xe zin</span></td>
+                <td><span class="badge badge-success">Đủ điều kiện Đưa ra khỏi diện</span></td>
+                <td><button onclick="showToast('Đã lập Quyết định đưa Nguyễn Đức Thắng ra khỏi diện quản lý trình Lãnh đạo ký.')" class="btn btn-primary btn-sm">Trình Lãnh đạo ký</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700;">Đặng Văn Tuấn</td>
+                <td><span style="font-weight: 800; color: #dc2626; font-size: 15px;">35đ</span></td>
+                <td><span class="badge badge-critical">Vắng mặt 3 lần</span></td>
+                <td><span class="badge badge-critical">Còn 3 lỗi pô/nòng/yếm</span></td>
+                <td><span class="badge badge-critical">Đề nghị chuyển biện pháp nghiêm khắc</span></td>
+                <td><button onclick="showToast('Đã chuyển hồ sơ Đặng Văn Tuấn sang Cơ quan CSĐT xử lý nghiêm khắc.')" class="btn btn-danger btn-sm">Chuyển CSĐT</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: NOTIFY (THÔNG BÁO)
+function renderNotifyScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div class="card" style="border-left: 4px solid var(--danger);">
+        <div style="font-weight: 700; font-size: 14px;">[CẢNH BÁO ĐÊM 22H-06H] Tụ tập đua xe khu vực cầu Phủ</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Công an Tỉnh phát lệnh khẩn cấp lúc 23:05 · SLA 60 phút</div>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--warning);">
+        <div style="font-weight: 700; font-size: 14px;">Nhắc nhở: Còn 3 đối tượng chưa hoàn thành điểm danh đêm</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Phiên ngày 29/08 sẽ tự động khóa cứng lúc 06:00 ngày 30/08</div>
+      </div>
+    </div>
+  `;
+}
+
+// SCREEN: ACCOUNT (TÀI KHOẢN)
+function renderAccountScreen() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 600px;">
+      <div class="card">
+        <div style="font-size: 15px; font-weight: 800; margin-bottom: 12px;">Thông tin định danh Cán bộ</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f3f7; padding-bottom: 6px;">
+            <span style="color: #98a2b3;">Họ tên cán bộ:</span>
+            <span style="font-weight: 700;">Đại úy Nguyễn Hữu Bình</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f3f7; padding-bottom: 6px;">
+            <span style="color: #98a2b3;">Số hiệu CAND:</span>
+            <span style="font-weight: 700; font-family: var(--font-mono);">38-104928</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f3f7; padding-bottom: 6px;">
+            <span style="color: #98a2b3;">Vai trò hệ thống:</span>
+            <span class="badge badge-accent">${state.role}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== MODALS ====================
+function renderModal() {
+  const o = DB.objects.find(x => x.code === state.selectedSubject) || DB.objects[0];
+  const isCheckin = state.activeModal === 'checkin';
+  const isProfile = state.activeModal === 'profile';
+  const isSummons = state.activeModal === 'summons';
+  const isAlert = state.activeModal === 'alert';
+  const isNewAlert = state.activeModal === 'newAlert';
+
+  return `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal-window">
+        <!-- Header -->
+        <div class="modal-header">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase;">
+              ${isCheckin ? 'PHIẾU ĐIỂM DANH CA ĐÊM (22H - 06H)' :
+                isProfile ? 'HỒ SƠ THANH NIÊN HƯ & XE ĐỘ' :
+                isSummons ? 'GIẤY TRIỆU TẬP & BIÊN BẢN CAM KẾT (+1 MỤC)' :
+                isAlert ? 'CẢNH BÁO TÁC CHIẾN CA ĐÊM' : 'PHÁT LỆNH CẢNH BÁO CA ĐÊM (TỈNH → XÃ)'}
+            </div>
+            <div style="font-size: 18px; font-weight: 800; margin-top: 3px; color: #1a1d26;">
+              ${isCheckin || isProfile || isSummons ? o.name + ' (' + o.code + ')' :
+                isAlert ? 'Cảnh báo khẩn cấp ca đêm' : 'Tạo Cảnh báo Điều hành Khẩn cấp'}
+            </div>
+          </div>
+          <button onclick="closeModal()" class="btn btn-ghost btn-sm" style="font-size: 18px; line-height: 1;">×</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          ${isCheckin ? renderCheckinModalBody(o) :
+            isProfile ? renderProfileModalBody(o) :
+            isSummons ? renderSummonsModalBody(o) :
+            isAlert ? renderAlertModalBody() : renderNewAlertModalBody()}
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button onclick="closeModal()" class="btn btn-secondary">Đóng</button>
+          ${isCheckin ? `
+            <button onclick="saveCheckin('${o.code}', 'absent')" class="btn btn-danger">Ghi Vắng mặt (-20đ)</button>
+            <button onclick="saveCheckin('${o.code}', 'present')" class="btn btn-primary" ${!(state.uploadedFace && state.uploadedVeh) ? 'disabled' : ''}>Lưu · Xác nhận Có mặt</button>
+          ` : isSummons ? `
+            <button onclick="exportDoc('Giấy triệu tập ${o.name}')" class="btn btn-secondary">Xuất Word / PDF</button>
+            <button onclick="saveSummons('${o.code}')" class="btn btn-primary">Ban hành Lệnh Triệu tập</button>
+          ` : isAlert ? `
+            <button onclick="resolveAlert()" class="btn btn-primary">Nộp Báo cáo Phản hồi (Đóng SLA)</button>
+          ` : isNewAlert ? `
+            <button onclick="broadcastAlert()" class="btn btn-danger pulse-danger">Phát Cảnh báo Ngay</button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCheckinModalBody(o) {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <!-- Upload ảnh -->
+      <div style="border: 1px solid #eef2f7; border-radius: 12px; padding: 14px;">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">1. Tải ảnh xác thực (Zalo / Live Camera) *</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div onclick="toggleUpload('face')" style="aspect-ratio: 4/3; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 10px; ${state.uploadedFace ? 'background:#f0fdf4; border:1px solid #16a34a;' : 'background:#f8f9fb; border:1px dashed #d1d5db;'}">
+            <span style="font-size: 13px; font-weight: 700; color: ${state.uploadedFace ? '#16a34a' : '#4b5563'};">${state.uploadedFace ? '✓ Đã nhận ảnh mặt' : '📷 Tải ảnh khuôn mặt'}</span>
+            <span style="font-size: 10px; color: #98a2b3;">Bấm để giả lập tải ảnh</span>
+          </div>
+          <div onclick="toggleUpload('veh')" style="aspect-ratio: 4/3; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 10px; ${state.uploadedVeh ? 'background:#f0fdf4; border:1px solid #16a34a;' : 'background:#f8f9fb; border:1px dashed #d1d5db;'}">
+            <span style="font-size: 13px; font-weight: 700; color: ${state.uploadedVeh ? '#16a34a' : '#4b5563'};">${state.uploadedVeh ? '✓ Đã nhận ảnh xe' : '🏍️ Tải ảnh phương tiện'}</span>
+            <span style="font-size: 10px; color: #98a2b3;">Bấm để giả lập tải ảnh</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tình trạng thực địa -->
+      <div style="border: 1px solid #eef2f7; border-radius: 12px; padding: 14px;">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">2. Ghi nhận thực địa tại nhà đối tượng</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label class="form-label">Tình trạng xe</label>
+            <select class="form-control" onchange="state.ciVehicle = this.value">
+              <option>Có xe, nguyên bản</option>
+              <option>Có xe, còn lỗi độ chế</option>
+              <option>Không có xe tại nhà</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Test cồn / ma túy</label>
+            <select class="form-control" onchange="state.ciTest = this.value">
+              <option>Âm tính</option>
+              <option>Dương tính (+ Chuyển xử lý)</option>
+              <option>Không thực hiện</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProfileModalBody(o) {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+        <div><strong>Họ tên:</strong> ${o.name}</div>
+        <div><strong>CCCD:</strong> ${o.cccd}</div>
+        <div><strong>Năm sinh:</strong> ${o.birth}</div>
+        <div><strong>Địa bàn:</strong> ${o.hamlet}</div>
+        <div><strong>Biển số xe:</strong> ${o.plate}</div>
+        <div><strong>Loại xe:</strong> ${o.vehicle}</div>
+      </div>
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px;">
+        <div style="font-weight: 700; color: #dc2626; font-size: 12px;">LỖI ĐỘ CHẾ KẾT CẤU PHƯƠNG TIỆN:</div>
+        <div style="font-size: 13px; margin-top: 4px;">${o.mods.length ? o.mods.join(', ') : 'Không có lỗi'}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSummonsModalBody(o) {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+      <div style="background: #fdf4e9; border: 1px solid #f9dfbf; border-radius: 10px; padding: 12px;">
+        <strong>Thành phần bắt buộc:</strong> Đối tượng <strong>${o.name}</strong> + <strong>Đại diện Hộ gia đình/Người giám hộ</strong> + Phương tiện xe máy mang theo để kiểm tra trực tiếp tại trụ sở.
+      </div>
+      <div>
+        <label class="form-label">Thời gian có mặt tại Trụ sở CA Phường:</label>
+        <input type="text" class="form-control" value="08:00 ngày 15/09/2026">
+      </div>
+      <div>
+        <label class="form-label">Nội dung cam kết (+1 Mục hoàn nguyên xe zin):</label>
+        <input type="text" class="form-control" value="Cam kết không tụ tập đêm, tháo pô độ và hoàn nguyên xe đúng kết cấu trước 30/09/2026">
+      </div>
+    </div>
+  `;
+}
+
+function renderAlertModalBody() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; color: #7f1d1d;">
+        <strong>Chỉ đạo tác chiến đêm từ Công an Tỉnh:</strong> Huy động tổ tuần tra kiểm tra ngay các điểm nóng đua xe, lạng lách trên tuyến QL1A và chốt chặn đối tượng ĐTNGC.
+      </div>
+      <div>
+        <label class="form-label">Nội dung Báo cáo phản hồi nộp lên Tỉnh:</label>
+        <textarea class="form-control" rows="3">Đã điều động 01 tổ tuần tra đêm gồm 04 đồng chí chốt chặn tuyến đường tránh, kiểm tra 04 đối tượng ĐTNGC, không phát hiện vi phạm tụ tập.</textarea>
+      </div>
+    </div>
+  `;
+}
+
+function renderNewAlertModalBody() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label class="form-label">Đơn vị nhận Lệnh tác chiến *</label>
+        <select class="form-control">
+          <option>Toàn bộ 6 Xã, Phường trọng điểm</option>
+          <option>Phường Thành Sen</option>
+          <option>Xã Cẩm Bình</option>
+          <option>Xã Đồng Tiến</option>
+        </select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label class="form-label">Mức độ khẩn cấp *</label>
+          <select class="form-control"><option>URGENT (Khẩn cấp - SLA 60 phút)</option><option>HIGH (Cao - SLA 120 phút)</option></select>
+        </div>
+        <div>
+          <label class="form-label">Khung giờ tác chiến *</label>
+          <input type="text" class="form-control" value="22:00 - 06:00 sáng" readonly>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Nội dung Chỉ đạo tác chiến đêm *</label>
+        <textarea class="form-control" rows="3" placeholder="Nhập nội dung chỉ đạo chốt chặn, kiểm tra thanh niên tụ tập đua xe...">Phát hiện dấu hiệu tụ tập xe độ pô nổ trên tuyến QL1A, yêu cầu các xã triển khai chốt chặn và kiểm tra điểm danh đột xuất 100% ĐTNGC trong 60 phút.</textarea>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== ACTIONS & EVENT HANDLERS ====================
+function setRole(role) {
+  state.role = role;
+  state.screen = role === 'TINH' ? 'overview' : 'work';
+  render();
+}
+
+function logout() {
+  state.role = null;
+  state.activeModal = null;
+  render();
+}
+
+function navigate(screen) {
+  state.screen = screen;
+  state.activeModal = null;
+  render();
+}
+
+function selectRollcallDate(date) {
+  state.selectedDate = date;
+  render();
+}
+
+function openCheckinModal(code) {
+  state.selectedSubject = code;
+  state.activeModal = 'checkin';
+  state.uploadedFace = false;
+  state.uploadedVeh = false;
+  render();
+}
+
+function openProfileModal(code) {
+  state.selectedSubject = code;
+  state.activeModal = 'profile';
+  render();
+}
+
+function openSummonsModal(code) {
+  state.selectedSubject = code;
+  state.activeModal = 'summons';
+  render();
+}
+
+function openAlertModal(code) {
+  state.activeModal = 'alert';
+  render();
+}
+
+function openNewAlertModal() {
+  state.activeModal = 'newAlert';
+  render();
+}
+
+function closeModal() {
+  state.activeModal = null;
+  render();
+}
+
+function closeModalOnBackdrop(e) {
+  if (e.target.classList.contains('modal-backdrop')) {
+    closeModal();
+  }
+}
+
+function toggleUpload(kind) {
+  if (kind === 'face') state.uploadedFace = !state.uploadedFace;
+  if (kind === 'veh') state.uploadedVeh = !state.uploadedVeh;
+  render();
+}
+
+function saveCheckin(code, status) {
+  const o = DB.objects.find(x => x.code === code);
+  if (o) {
+    o.roll = status;
+    o.time = '23:15';
+    if (status === 'absent') {
+      o.score = Math.max(0, o.score - 20);
+      showToast(`Đã ghi nhận ${o.name} VẮNG MẶT lúc 23:15 (-20đ). Tự động kích hoạt Cảnh báo đỏ đêm!`);
+    } else {
+      o.score = Math.min(100, o.score + 2);
+      showToast(`Đã lưu ${o.name} CÓ MẶT lúc 23:15 (+2đ). Khóa cứng sau 24h.`);
+    }
+  }
+  closeModal();
+}
+
+function saveSummons(code) {
+  const o = DB.objects.find(x => x.code === code);
+  showToast(`Đã ban hành Lệnh Triệu tập đối với ${o ? o.name : ''} kèm Đại diện Hộ gia đình.`);
+  closeModal();
+}
+
+function resolveAlert() {
+  showToast('Đã nộp Báo cáo Phản hồi Cảnh báo lên Công an Tỉnh trong hạn SLA. Trạng thái: ĐÃ XỬ LÝ (RESOLVED).');
+  closeModal();
+}
+
+function broadcastAlert() {
+  showToast('Đã phát Lệnh Cảnh báo Tác chiến Ca đêm tới 6 Xã/Phường. Bắt đầu đếm ngược SLA 60 phút.');
+  closeModal();
+}
+
+function sendCommuneNudge(communeName) {
+  showToast(`Đã bắn Cảnh báo Đôn đốc tác chiến đêm tới Trưởng Công an ${communeName}.`);
+}
+
+function approveProfile(code) {
+  const o = DB.objects.find(x => x.code === code);
+  if (o) o.state = 'active';
+  showToast(`Lãnh đạo đã phê duyệt hồ sơ đối tượng ${o ? o.name : ''}. Phân công CSKV thụ lý.`);
+  render();
+}
+
+function approveSessionClose() {
+  showToast('Đã ký duyệt chốt sổ phiên điểm danh 28/08. Chuyển trạng thái KHÓA CỨNG 24H (Read-only).');
+  render();
+}
+
+function saveAssignments() {
+  showToast('Đã lưu và phê duyệt phân công Cán bộ CSKV thụ lý hồ sơ.');
+}
+
+function changeOfficer(code, officer) {
+  const o = DB.objects.find(x => x.code === code);
+  if (o) o.officer = officer;
+  showToast(`Đã phân công ${o.name} cho ${officer}.`);
+}
+
+function verifyAuditChain() {
+  showToast('Đã kiểm tra 1.284 khối mã băm SHA-256: 100% HỢP LỆ, không có dấu hiệu sửa lùi dữ liệu.');
+}
+
+function exportDoc(name) {
+  showToast(`Đã kết xuất ${name} chuẩn thể thức CAND kèm vân mờ Forensic Watermark.`);
+}
+
+function wizardNext() {
+  if (state.wizardStep < 3) {
+    state.wizardStep++;
+    render();
+  } else {
+    showToast('Đã nộp hồ sơ thanh niên hư mới trình Lãnh đạo Công an Xã phê duyệt.');
+    state.wizardStep = 1;
+    state.screen = 'profiles';
+    render();
+  }
+}
+
+function wizardPrev() {
+  if (state.wizardStep > 1) {
+    state.wizardStep--;
+    render();
+  }
+}
+
+function filterObjects(query) {
+  // Reactive search demo
+}
+
+function attachEvents() {
+  // DOM Ready
+}
+
+// Initial bootstrap
+render();
+</script>
+</body>
+</html>
