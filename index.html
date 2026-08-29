@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hệ thống Quản lý & Giáo dục Thanh thiếu niên chậm tiến (Standalone)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0E2A47;
+      --navy-dark: #081726;
+      --navy-light: #173A5E;
+      --red: #C1121F;
+      --red-bg: #FDECEE;
+      --green: #1B7F4B;
+      --green-bg: #E7F4EC;
+      --amber: #B4740A;
+      --amber-bg: #FDF3E2;
+      --blue: #1D4E8F;
+      --blue-bg: #E9F0FA;
+      --gold: #E8B647;
+      --border: #DDE3EA;
+      --bg: #EEF1F5;
+      --text: #16212E;
+      --text-muted: #6C7B8B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.45;
+    }
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+    button { cursor: pointer; border: none; background: none; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #E4E9EF; }
+    ::-webkit-scrollbar-thumb { background: #B7C2CE; border-radius: 4px; }
+    
+    .font-mono { font-family: 'IBM Plex Mono', monospace; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 3px;
+      font-size: 12.8px;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--red); }
+    .btn-outline {
+      border: 1px solid #CFD8E1;
+      background: #fff;
+      color: var(--navy);
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 3px;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+    .btn-outline:hover { border-color: var(--navy); background: #F8FAFC; }
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 3px;
+      font-size: 12.8px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #E7ECF1;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Grid Tables */
+    .grid-table-header {
+      background: #F4F7FA;
+      border-bottom: 1px solid var(--border);
+      padding: 9px 12px;
+      font-size: 10.5px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: grid;
+      gap: 8px;
+      align-items: center;
+    }
+    .grid-table-row {
+      border-bottom: 1px solid #F0F3F6;
+      padding: 10px 12px;
+      display: grid;
+      gap: 8px;
+      align-items: center;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .grid-table-row:hover { background: #F6F9FC; }
+    .grid-table-row.active { background: #F2F7FC; }
+
+    @keyframes pulseRed { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red);
+      animation: pulseRed 1.6s infinite;
+      display: inline-block;
+    }
+
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast-box {
+      animation: slideIn 0.25s ease-out;
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 999999;
+      background: #0E2A47;
+      color: #fff;
+      padding: 13px 18px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(10,27,46,.35);
+      max-width: 440px;
+      border-left: 4px solid #E8B647;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .toast-box.bad {
+      background: #8E1620;
+      border-left-color: #FFA4A9;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // =========================================================================
+    // CONSTANTS & SEED DATA (RBAC, MASTER ENUMS, BUSINESS RULES)
+    // =========================================================================
+    const NAVY = '#0E2A47', RED = '#C1121F', GREEN = '#1B7F4B', AMBER = '#B4740A', BLUE = '#1D4E8F', GREY = '#93A2B1';
+
+    const PERMS = {
+      cskv: ['profile.view', 'profile.create', 'profile.submit', 'assign.propose', 'checkin.record', 'meeting.view', 'exit.propose', 'report.view'],
+      truongca: ['profile.view', 'profile.approve', 'profile.reject', 'assign.approve', 'checkin.view', 'voucher.review', 'meeting.view', 'exit.review', 'audit.view', 'audit.unlock', 'report.view'],
+      ubnd: ['profile.view', 'profile.issue', 'profile.reject', 'voucher.pay', 'checkin.view', 'meeting.chair', 'exit.issue', 'audit.view', 'report.view'],
+      tinh: ['profile.view', 'checkin.view', 'meeting.view', 'exit.view', 'audit.view', 'report.view', 'report.province']
+    };
+
+    const PERM_LABELS = [
+      ['profile.view', 'Xem hồ sơ đối tượng trong phạm vi'],
+      ['profile.create', 'Khởi tạo hồ sơ mới'],
+      ['profile.submit', 'Trình hồ sơ lên Trưởng Công an xã'],
+      ['profile.approve', 'Thẩm định & ký tờ trình chuyển UBND'],
+      ['profile.issue', 'Ký số ban hành quyết định áp dụng'],
+      ['assign.propose', 'Đề xuất người giúp đỡ'],
+      ['assign.approve', 'Phê duyệt phân công người giúp đỡ'],
+      ['checkin.record', 'Ghi nhận trình diện tại trụ sở'],
+      ['voucher.review', 'Thẩm định phiếu chi kinh phí'],
+      ['voucher.pay', 'Ký duyệt chi kinh phí'],
+      ['meeting.chair', 'Chủ trì & ký số biên bản họp'],
+      ['exit.issue', 'Ký ban hành chứng nhận hoàn lương'],
+      ['audit.view', 'Tra cứu nhật ký vết hệ thống'],
+      ['report.province', 'Báo cáo & xếp hạng toàn tỉnh']
+    ];
+
+    const ACCOUNTS = [
+      { id: 'a1', username: 'lvhung.cskv', name: 'Đại úy Lê Văn Hùng', title: 'Cán bộ CSKV', role: 'cskv', roleName: 'Cán bộ CSKV', unit: 'Công an xã Tân Phú Trung', hamlets: ['Ấp Tân Thới'], scopeText: 'Ấp Tân Thới', av: '#1D4E8F' },
+      { id: 'a2', username: 'nthaha.cskv', name: 'Thượng úy Nguyễn Thị Thu Hà', title: 'Cán bộ CSKV', role: 'cskv', roleName: 'Cán bộ CSKV', unit: 'Công an xã Tân Phú Trung', hamlets: ['Ấp Bình Hòa', 'Ấp Phú Thuận'], scopeText: 'Ấp Bình Hòa, Phú Thuận', av: '#1D4E8F' },
+      { id: 'a3', username: 'pmtuan.truongca', name: 'Thượng tá Phạm Minh Tuấn', title: 'Trưởng Công an xã', role: 'truongca', roleName: 'Trưởng Công an xã', unit: 'Công an xã Tân Phú Trung', hamlets: null, scopeText: 'Toàn xã (03 ấp)', av: '#0E2A47' },
+      { id: 'a4', username: 'nvthanh.ubnd', name: 'Ông Nguyễn Văn Thành', title: 'Chủ tịch UBND xã', role: 'ubnd', roleName: 'Chủ tịch UBND xã', unit: 'UBND xã Tân Phú Trung', hamlets: null, scopeText: 'Toàn xã (03 ấp)', av: '#96101B' },
+      { id: 'a5', username: 'tqvinh.catinh', name: 'Đại tá Trần Quang Vinh', title: 'Lãnh đạo Công an tỉnh', role: 'tinh', roleName: 'Lãnh đạo Công an tỉnh', unit: 'Công an tỉnh — Phòng CSHS', hamlets: null, scopeText: 'Toàn tỉnh (25 xã/phường)', av: '#4B3A80' }
+    ];
+
+    const STATUS = {
+      DRAFT: { l: 'Nháp', bg: '#EEF1F5', fg: '#5B6B7C' },
+      SUBMITTED_CA: { l: 'Chờ Trưởng CA', bg: '#FDF3E2', fg: '#8A5A08' },
+      NEED_UPDATE: { l: 'Yêu cầu bổ sung', bg: '#FDF3E2', fg: '#8A5A08' },
+      SUBMITTED_UBND: { l: 'Chờ UBND ký', bg: '#E9F0FA', fg: '#1D4E8F' },
+      ACTIVE_MANAGED: { l: 'Đang quản lý', bg: '#E7F4EC', fg: '#14663C' },
+      PENDING_EARLY: { l: 'Chờ xét sớm', bg: '#E9F0FA', fg: '#1D4E8F' },
+      COMPLETED_EARLY: { l: 'Hoàn thành sớm', bg: '#E7F4EC', fg: '#14663C' },
+      COMPLETED_NORMAL: { l: 'Hoàn thành đúng hạn', bg: '#E7F4EC', fg: '#14663C' },
+      IN_CLEAN_PROBATION: { l: 'Thử thách 1 năm', bg: '#E9F0FA', fg: '#1D4E8F' },
+      EXPUNGED: { l: 'Đã xóa vết nhơ', bg: '#E7F4EC', fg: '#14663C' },
+      ESCALATED: { l: 'Đề nghị TGD', bg: '#FDECEE', fg: '#96101B' },
+      ESCALATED_REFORM_SCHOOL: { l: 'Trường giáo dưỡng', bg: '#FDECEE', fg: '#96101B' },
+      REJECTED: { l: 'Bị bác bỏ', bg: '#FDECEE', fg: '#96101B' },
+      EXPIRED_STATUTE: { l: 'Hết thời hiệu', bg: '#FDECEE', fg: '#96101B' }
+    };
+
+    const SEED_PROFILES = [
+      { code: 'HS-2026-00012', name: 'TRẦN QUỐC BẢO', dob: '15/05/2011', group: 'Nhóm 2 (14 – <16)', viol: 'Gây rối TTCC (lần 3)', mentor: 'Nguyễn Thị Lan', st: 'ACTIVE_MANAGED', pct: 78, hamlet: 'Ấp Tân Thới', sub: 'Nam · 15 tuổi · thôi học lớp 9', dur: '6 tháng (20/03 – 20/09/2026)', guardian: 'Nguyễn Thị Thu · 0938 217 460', vehicle: '59X1-482.19 · Yamaha Exciter (độ pô)', res: 'Cư trú ổn định · 45 ngày', docsOk: 5, rating: 'Xuất sắc (2/3 kỳ)', history: [{ time: '20/03 09:14', text: 'Chủ tịch UBND xã ký ban hành quyết định áp dụng' }, { time: '18/03 15:02', text: 'Trưởng CA xã ký tờ trình, chuyển UBND' }, { time: '16/03 08:40', text: 'CSKV Lê Văn Hùng khởi tạo hồ sơ' }] },
+      { code: 'HS-2026-00018', name: 'LÊ MINH KHOA', dob: '02/11/2008', group: 'Nhóm 3 (16 – <18)', viol: 'Đua xe / độ chế xe', mentor: 'Phạm Văn Đức', st: 'ACTIVE_MANAGED', pct: 52, hamlet: 'Ấp Bình Hòa', sub: 'Nam · 17 tuổi · học nghề cơ khí', dur: '6 tháng (10/05 – 10/11/2026)', guardian: 'Lê Văn Tám · 0907 553 118', vehicle: '59F1-119.02 · Honda Winner (thay mâm)', res: 'Cư trú ổn định · 120 ngày', docsOk: 5, rating: 'Có tiến bộ', history: [{ time: '10/05 10:20', text: 'Chủ tịch UBND xã ký ban hành quyết định' }, { time: '06/05 14:11', text: 'CSKV Nguyễn Thị Thu Hà khởi tạo hồ sơ' }] },
+      { code: 'HS-2026-00023', name: 'VÕ THÀNH ĐẠT', dob: '21/07/2010', group: 'Nhóm 3 (16 – <18)', viol: 'Sử dụng trái phép chất ma túy', mentor: 'Trần Hữu Nghĩa', st: 'ACTIVE_MANAGED', pct: 34, hamlet: 'Ấp Tân Thới', sub: 'Nam · 16 tuổi · không nghề nghiệp', dur: '6 tháng (01/07 – 01/01/2027)', guardian: 'Võ Thị Mai · 0356 884 207', vehicle: 'Không sử dụng phương tiện', res: 'Cư trú ổn định · 210 ngày', docsOk: 5, rating: 'Chưa tiến bộ', history: [{ time: '01/07 08:55', text: 'Chủ tịch UBND xã ký ban hành quyết định' }, { time: '27/06 16:30', text: 'CSKV Lê Văn Hùng khởi tạo hồ sơ' }] },
+      { code: 'HS-2026-00021', name: 'NGUYỄN GIA HUY', dob: '08/03/2013', group: 'Nhóm 1 (12 – <14)', viol: 'Trộm cắp tài sản', mentor: '— chưa phân công', st: 'SUBMITTED_CA', pct: 0, hamlet: 'Ấp Phú Thuận', sub: 'Nam · 13 tuổi · đang học lớp 7', dur: 'Đề xuất 3 – 6 tháng', guardian: 'Nguyễn Văn Sáu · 0973 410 265', vehicle: 'Không sử dụng phương tiện', res: 'Cư trú ổn định · 365 ngày', docsOk: 4, rating: '—', history: [{ time: '26/08 11:05', text: 'CSKV Nguyễn Thị Thu Hà trình Trưởng Công an xã' }, { time: '25/08 09:30', text: 'CSKV Nguyễn Thị Thu Hà khởi tạo hồ sơ' }] },
+      { code: 'HS-2026-00025', name: 'ĐẶNG TUẤN KIỆT', dob: '19/09/2010', group: 'Nhóm 2 (14 – <16)', viol: 'Đánh bạc (lần 3)', mentor: '— chưa phân công', st: 'SUBMITTED_UBND', pct: 0, hamlet: 'Ấp Bình Hòa', sub: 'Nam · 15 tuổi · bỏ học lớp 8', dur: 'Đề xuất 6 tháng', guardian: 'Đặng Văn Lợi · 0912 664 830', vehicle: '59N1-773.45 · Honda Wave', res: 'Cư trú ổn định · 96 ngày', docsOk: 5, rating: '—', history: [{ time: '27/08 14:22', text: 'Trưởng CA xã ký tờ trình, chuyển UBND xã' }, { time: '24/08 10:12', text: 'CSKV Nguyễn Thị Thu Hà khởi tạo hồ sơ' }] },
+      { code: 'HS-2026-00030', name: 'BÙI NHẬT NAM', dob: '27/12/2011', group: 'Nhóm 2 (14 – <16)', viol: 'Đua xe trái phép', mentor: '—', st: 'DRAFT', pct: 0, hamlet: 'Ấp Tân Thới', sub: 'Nam · 14 tuổi · lao động tự do', dur: 'Chưa xác lập', guardian: 'Bùi Văn Hoàng · 0908 122 947', vehicle: 'Không rõ biển số', res: 'Lưu động · 22 ngày', docsOk: 2, rating: '—', history: [{ time: '28/08 07:41', text: 'CSKV Lê Văn Hùng khởi tạo hồ sơ (nháp)' }] },
+      { code: 'HS-2026-00007', name: 'HOÀNG ANH TÚ', dob: '04/02/2008', group: 'Nhóm 4 (≥ 18)', viol: 'Gây rối TTCC', mentor: 'Đỗ Văn Bình', st: 'COMPLETED_EARLY', pct: 100, hamlet: 'Ấp Phú Thuận', sub: 'Nam · 18 tuổi · công nhân', dur: 'Hoàn thành sớm 12/07/2026', guardian: 'Hoàng Thị Nga · 0964 337 512', vehicle: '59P1-208.66 · Honda Vision', res: 'Cư trú ổn định · 720 ngày', docsOk: 5, rating: 'Xuất sắc', history: [{ time: '12/07 09:00', text: 'Chủ tịch UBND xã ký chứng nhận CN-2026-00118' }] },
+      { code: 'HS-2025-00004', name: 'TRỊNH VĂN SƠN', dob: '30/06/2009', group: 'Nhóm 3 (16 – <18)', viol: 'Tái phạm trộm cắp', mentor: 'Đỗ Văn Bình', st: 'ESCALATED', pct: 61, hamlet: 'Ấp Bình Hòa', sub: 'Nam · 17 tuổi · không nghề nghiệp', dur: '6 tháng (12/02 – 12/08/2026)', guardian: 'Trịnh Văn Bảy · 0328 771 049', vehicle: 'Không sử dụng phương tiện', res: 'Cư trú ổn định · 400 ngày', docsOk: 5, rating: 'Kém (2 kỳ)', history: [{ time: '19/08 15:40', text: 'Trưởng CA xã ký tờ trình gửi Tòa án nhân dân' }] }
+    ];
+
+    const SEED_MENTORS = [
+      { id: 'm1', name: 'NGUYỄN THỊ LAN', org: 'Hội Phụ nữ xã', phone: '0938 004 121', cases: 2, bank: 'Agribank · 6203 2145 8890', logs: 4 },
+      { id: 'm2', name: 'PHẠM VĂN ĐỨC', org: 'Đoàn Thanh niên xã', phone: '0977 512 663', cases: 3, bank: 'Vietcombank · 0451 0007 3312', logs: 7 },
+      { id: 'm3', name: 'TRẦN HỮU NGHĨA', org: 'Hội Cựu chiến binh', phone: '0913 220 748', cases: 1, bank: 'BIDV · 6410 0088 2104', logs: 1 },
+      { id: 'm4', name: 'LÝ THỊ HOA', org: 'Cán bộ công tác xã hội', phone: '0902 887 315', cases: 0, bank: 'Agribank · 6203 9917 4402', logs: 0 },
+      { id: 'm5', name: 'ĐỖ VĂN BÌNH', org: 'Người có uy tín cộng đồng', phone: '0356 118 902', cases: 2, bank: 'Vietinbank · 1030 4471 2255', logs: 5 }
+    ];
+
+    const SEED_VOUCHERS = [
+      { code: 'PC-202608-00131', mid: 'm1', cases: '02 ca · 31 ngày', amount: 1000000, st: 'PENDING_REVIEW' },
+      { code: 'PC-202608-00132', mid: 'm2', cases: '03 ca · 31 ngày', amount: 1500000, st: 'CHIEF_APPROVED' },
+      { code: '—', mid: 'm3', cases: '01 ca · 31 ngày', amount: 0, st: 'LOCKED' },
+      { code: 'PC-202608-00134', mid: 'm5', cases: '02 ca · 31 ngày', amount: 1000000, st: 'PAID' }
+    ];
+
+    const SEED_APPTS = [
+      { id: 'ap1', time: '07:30', name: 'TRỊNH VĂN SƠN', code: 'HS-2025-00004', note: 'Vắng không lý do — quá 4 tiếng', st: 'ABSENT' },
+      { id: 'ap2', time: '08:00', name: 'TRẦN QUỐC BẢO', code: 'HS-2026-00012', note: 'Trình diện định kỳ tuần 35', st: 'DONE', doneAt: '08:25' },
+      { id: 'ap3', time: '09:00', name: 'LÊ MINH KHOA', code: 'HS-2026-00018', note: 'Kèm kiểm tra phương tiện', st: 'DONE', doneAt: '09:04' },
+      { id: 'ap4', time: '10:00', name: 'VÕ THÀNH ĐẠT', code: 'HS-2026-00023', note: 'Bắt buộc test ma túy', st: 'WAITING' },
+      { id: 'ap5', time: '14:00', name: 'ĐẶNG TUẤN KIỆT', code: 'HS-2026-00025', note: 'Trình diện lần đầu sau quyết định', st: 'PENDING' }
+    ];
+
+    const SEED_DIARY = [
+      { mentor: 'Nguyễn Thị Lan', subject: 'Trần Quốc Bảo', time: '26/08 19:20', place: 'Tại nhà · Ấp Tân Thới (GPS khớp)', note: 'Gia đình cho biết cháu đi làm phụ quán từ 6h–17h, buổi tối ở nhà. Đã trao đổi với mẹ về việc đăng ký lớp nghề điện dân dụng tháng 9.' },
+      { mentor: 'Phạm Văn Đức', subject: 'Lê Minh Khoa', time: '25/08 20:05', place: 'Tại xưởng cơ khí · Ấp Bình Hòa', note: 'Khoa đi làm đều, chủ xưởng đánh giá tích cực. Nhắc nhở không tham gia nhóm chạy xe đêm cuối tuần.' },
+      { mentor: 'Trần Hữu Nghĩa', subject: 'Võ Thành Đạt', time: '21/08 17:40', place: 'Tại nhà · Ấp Tân Thới', note: 'Đạt né tránh, chỉ tiếp chuyện 10 phút. Đề nghị Công an xã tăng tần suất test ma túy đột xuất.' },
+      { mentor: 'Đỗ Văn Bình', subject: 'Trịnh Văn Sơn', time: '18/08 16:10', place: 'Tại nhà · Ấp Bình Hòa', note: 'Không gặp được đối tượng, gia đình nói đã bỏ đi khỏi địa phương 3 ngày. Đã báo cáo CSKV lập biên bản.' }
+    ];
+
+    const SEED_LOGS = [
+      { time: '28/08/2026 08:12:47', actor: 'Thượng tá Phạm Minh Tuấn', role: 'TRUONG_CA', action: 'APPROVE', target: 'HS-2026-00021', detail: 'Thẩm định hồ sơ', ip: '10.24.8.02 (Windows Edge)' },
+      { time: '28/08/2026 07:58:03', actor: 'Ông Nguyễn Văn Thành', role: 'CHU_TICH_UBND', action: 'EXPORT_PDF', target: 'HS-2026-00025', detail: 'Tải tờ trình', ip: '10.24.9.41 (macOS Safari)' },
+      { time: '27/08/2026 22:14:56', actor: 'Tài khoản: nthaha.cskv', role: 'CSKV', action: 'LOGIN_FAILED', target: '—', detail: 'Sai mật khẩu lần 5', ip: '113.161.44.9 (Android)' },
+      { time: '27/08/2026 20:41:09', actor: 'Bà Nguyễn Thị Lan', role: 'MENTOR', action: 'CREATE', target: 'HS-2026-00012', detail: 'Ghi sổ tay thăm gặp', ip: '42.115.90.7 (Android App)' },
+      { time: '27/08/2026 16:30:22', actor: 'Đại úy Lê Văn Hùng', role: 'CSKV', action: 'VIEW_PROFILE', target: 'HS-2026-00023', detail: 'Xem hồ sơ', ip: '10.24.8.15 (Windows Chrome)' },
+      { time: '27/08/2026 15:02:38', actor: 'Đại tá Trần Quang Vinh', role: 'LANH_DAO_TINH', action: 'EXPORT_PDF', target: 'BC-02-COCAU', detail: 'Kết xuất báo cáo tỉnh', ip: '10.10.1.7 (Windows Chrome)' }
+    ];
+
+    const TASKS = [
+      { id: 'ON_TIME_ATTENDANCE', label: 'Đôn đốc trình diện đúng hẹn' },
+      { id: 'DRUG_RELAPSE_PREVENTION', label: 'Phòng ngừa tái sử dụng ma túy' },
+      { id: 'VOCATIONAL_TRAINING', label: 'Hướng nghiệp – học nghề' },
+      { id: 'COMMUNITY_SERVICE', label: 'Lao động công ích Điều 50' }
+    ];
+
+    const VIOLS = [
+      { id: 'DISORDERLY_CONDUCT', label: 'Gây rối trật tự công cộng (lần 3)', months: 6 },
+      { id: 'THEFT', label: 'Trộm cắp tài sản', months: 6 },
+      { id: 'GAMBLING', label: 'Đánh bạc', months: 6 },
+      { id: 'STREET_RACING', label: 'Đua xe / độ chế phương tiện', months: 6 },
+      { id: 'DRUG_USE', label: 'Sử dụng trái phép chất ma túy', months: 3 },
+      { id: 'SERIOUS_INTENT', label: 'Hành vi có dấu hiệu tội phạm rất nghiêm trọng do cố ý', months: 12 }
+    ];
+
+    const DOC_LABELS = ['Biên bản vi phạm hành chính', 'Bản cam kết không tái phạm', 'Ý kiến cán bộ CTXH / trẻ em', 'Phiếu kết quả test ma túy', '02 ảnh chân dung nhận dạng'];
+    const HAMLETS = ['Ấp Tân Thới', 'Ấp Bình Hòa', 'Ấp Phú Thuận'];
+    const ATTENDEES = [
+      { n: 'Ông Nguyễn Văn Thành', r: 'Chủ tịch UBND xã — Chủ trì' },
+      { n: 'Thượng tá Phạm Minh Tuấn', r: 'Trưởng Công an xã' },
+      { n: 'Đại úy Lê Văn Hùng', r: 'Cán bộ CSKV — Thư ký' },
+      { n: 'Bà Nguyễn Thị Lan', r: 'Người giúp đỡ (Hội Phụ nữ)' },
+      { n: 'Bà Nguyễn Thị Thu', r: 'Mẹ đối tượng' },
+      { n: 'Ông Lê Hoàng Phúc', r: 'Bí thư Đoàn Thanh niên xã' },
+      { n: 'Bà Trương Mỹ Duyên', r: 'Công chức Văn hóa – Xã hội' }
+    ];
+
+    const ROLE_CODE = { cskv: 'CSKV', truongca: 'TRUONG_CA', ubnd: 'CHU_TICH_UBND', tinh: 'LANH_DAO_TINH' };
+
+    function d2(n) { return n < 10 ? '0' + n : '' + n; }
+    function fmt(d) { return d2(d.getDate()) + '/' + d2(d.getMonth() + 1) + '/' + d.getFullYear(); }
+    function money(n) { return (n || 0).toLocaleString('vi-VN') + ' đ'; }
+
+    // =========================================================================
+    // APPLICATION STATE & REACTIVE CONTROLLER
+    // =========================================================================
+    class AppController {
+      constructor() {
+        this.state = {
+          logged: false,
+          accountId: 'a1',
+          screen: 'dash',
+          toast: '',
+          toastBad: false,
+          profiles: JSON.parse(JSON.stringify(SEED_PROFILES)),
+          mentors: JSON.parse(JSON.stringify(SEED_MENTORS)),
+          vouchers: JSON.parse(JSON.stringify(SEED_VOUCHERS)),
+          appts: JSON.parse(JSON.stringify(SEED_APPTS)),
+          diary: JSON.parse(JSON.stringify(SEED_DIARY)),
+          logs: JSON.parse(JSON.stringify(SEED_LOGS)),
+          incidents: [
+            { code: 'SEC-202608-00071', sev: 'CRITICAL', sevBg: RED, type: 'MASS_DOWNLOAD_ATTEMPT', detail: 'Tài khoản nthaha.cskv tải 42 ảnh chân dung trong 5 phút. Tài khoản đã bị tạm khóa 60 phút.', locked: true },
+            { code: 'SEC-202608-00069', sev: 'HIGH', sevBg: '#C96A12', type: 'BRUTE_FORCE_LOGIN', detail: '05 lần đăng nhập sai liên tiếp từ IP 113.161.44.9 lúc 22:14 ngày 27/08.', locked: false },
+            { code: 'SEC-202608-00064', sev: 'MEDIUM', sevBg: AMBER, type: 'UNAUTHORIZED_SCOPE_ACCESS', detail: 'Cán bộ CSKV truy vấn hồ sơ ngoài phạm vi thôn/ấp được phân công.', locked: false }
+          ],
+          q: '',
+          filter: 'ALL',
+          selCode: 'HS-2026-00012',
+          fName: '',
+          fDob: '2011-05-15',
+          fViolDate: '2026-08-10',
+          fViolType: 'DISORDERLY_CONDUCT',
+          fDays: 45,
+          fHamlet: 'Ấp Tân Thới',
+          fGuardian: '',
+          fPhone: '',
+          fVehicle: '59X1-482.19 · Yamaha Exciter (độ pô)',
+          fDocs: [0, 1, 2, 4],
+          mentorId: 'm1',
+          assignProfile: '',
+          tasks: ['ON_TIME_ATTENDANCE'],
+          checkinId: 'ap4',
+          checkin: { attendance: 'ON_TIME', conduct: 'POLITE', drug: 'NEGATIVE', vehicle: 'STANDARD_OK' },
+          counsel: 'Nhắc nhở chấp hành giờ giấc, không tụ tập ban đêm; yêu cầu cam kết không điều khiển xe độ chế.',
+          present: { 0: true, 1: true, 2: true, 3: true, 4: false, 5: true, 6: false },
+          postpones: 0,
+          rating: 'PROGRESSIVE',
+          started: false,
+          signed: false,
+          seq: 31
+        };
+      }
+
+      acct() {
+        return ACCOUNTS.find(a => a.id === this.state.accountId) || ACCOUNTS[0];
+      }
+
+      can(perm) {
+        const r = this.acct().role;
+        return (PERMS[r] || []).includes(perm);
+      }
+
+      flash(text, bad = false) {
+        this.state.toast = text;
+        this.state.toastBad = !!bad;
+        this.render();
+        clearTimeout(this._t);
+        this._t = setTimeout(() => {
+          this.state.toast = '';
+          this.render();
+        }, 3600);
+      }
+
+      log(action, target, detail) {
+        const a = this.acct(), n = new Date();
+        const entry = {
+          time: '28/08/2026 ' + d2(n.getHours()) + ':' + d2(n.getMinutes()) + ':' + d2(n.getSeconds()),
+          actor: a.name,
+          role: ROLE_CODE[a.role],
+          action,
+          target,
+          detail,
+          ip: '10.24.8.' + (10 + ACCOUNTS.indexOf(a)) + ' (Windows Chrome)'
+        };
+        this.state.logs.unshift(entry);
+      }
+
+      histLine() {
+        const n = new Date();
+        return d2(n.getDate()) + '/' + d2(n.getMonth() + 1) + ' ' + d2(n.getHours()) + ':' + d2(n.getMinutes());
+      }
+
+      patchProfile(code, patch, histText) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          Object.assign(p, patch);
+          if (histText) {
+            p.history.unshift({ time: this.histLine(), text: histText });
+          }
+          this.render();
+        }
+      }
+
+      visibleProfiles() {
+        const a = this.acct();
+        return this.state.profiles.filter(p => !a.hamlets || a.hamlets.includes(p.hamlet));
+      }
+
+      calc() {
+        const dob = new Date(this.state.fDob), vd = new Date(this.state.fViolDate);
+        let age = vd.getFullYear() - dob.getFullYear();
+        const m = vd.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && vd.getDate() < dob.getDate())) age--;
+        let group = 'Ngoài phạm vi điều chỉnh', gcolor = RED;
+        if (age >= 12 && age < 14) { group = 'Nhóm 1 · đủ 12 – <14 tuổi'; gcolor = NAVY; }
+        else if (age >= 14 && age < 16) { group = 'Nhóm 2 · đủ 14 – <16 tuổi'; gcolor = NAVY; }
+        else if (age >= 16 && age < 18) { group = 'Nhóm 3 · đủ 16 – <18 tuổi'; gcolor = NAVY; }
+        else if (age >= 18) { group = 'Nhóm 4 · đủ 18 tuổi trở lên'; gcolor = NAVY; }
+        const v = VIOLS.find(x => x.id === this.state.fViolType) || VIOLS[0];
+        const exp = new Date(vd);
+        exp.setMonth(exp.getMonth() + v.months);
+        const days = Math.round((exp - new Date('2026-08-28')) / 86400000);
+        return { age, group, gcolor, months: v.months, exp, days, expired: days < 0, mobile: Number(this.state.fDays) < 30 };
+      }
+
+      setState(patch) {
+        Object.assign(this.state, patch);
+        this.render();
+      }
+
+      // =======================================================================
+      // HTML VIEW BUILDERS
+      // =======================================================================
+      render() {
+        const root = document.getElementById('app');
+        if (!this.state.logged) {
+          root.innerHTML = this.renderLogin();
+        } else {
+          root.innerHTML = this.renderMainApp();
+        }
+      }
+
+      renderLogin() {
+        const a = this.acct();
+        return `
+          <div style="min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:#0A1B2E">
+            <div style="padding:60px 64px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(160deg,#0E2A47 0%,#081726 100%)">
+              <div style="display:flex;align-items:center;gap:16px">
+                <div style="width:52px;height:52px;border-radius:50%;background:#C1121F;border:3px solid #E8B647;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px">CA</div>
+                <div style="color:#fff">
+                  <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#8FA6BE;font-weight:600">Công an cấp Xã · Công an cấp Tỉnh</div>
+                  <div style="font-size:15px;font-weight:600;margin-top:2px">Nền tảng nghiệp vụ số hóa 2 cấp</div>
+                </div>
+              </div>
+              <div style="max-width:600px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E8B647;letter-spacing:.14em;margin-bottom:18px">HỆ THỐNG DÙNG CHUNG · V2.0 BI DASHBOARD · 2026</div>
+                <h1 style="color:#fff;font-size:38px;line-height:1.2;font-weight:700;margin:0 0 20px">Số hóa Quản lý &amp; Giáo dục Thanh thiếu niên chậm tiến</h1>
+                <p style="color:#A9BCD0;font-size:14.5px;line-height:1.7;margin:0 0 26px">Mỗi tài khoản chỉ nhìn thấy phần việc và phạm vi dữ liệu thuộc thẩm quyền của mình. Menu chức năng, dữ liệu hồ sơ và các nút thao tác được sinh ra từ ma trận phân quyền RBAC 2 cấp.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <div style="border:1px solid #24405E;background:#102B47;color:#BDD0E3;font-size:12px;padding:7px 12px;border-radius:3px">Luật Tư pháp người chưa thành niên 2024</div>
+                  <div style="border:1px solid #24405E;background:#102B47;color:#BDD0E3;font-size:12px;padding:7px 12px;border-radius:3px">Nghị định 120/2021/NĐ-CP</div>
+                </div>
+              </div>
+              <div style="color:#5C7796;font-size:12px;line-height:1.6">Dữ liệu nhân thân người chưa thành niên là dữ liệu nhạy cảm. Mọi thao tác đều được đóng watermark và lưu nhật ký SHA-256 (M06).</div>
+            </div>
+
+            <div style="background:#F5F7FA;padding:52px 54px;display:flex;flex-direction:column;justify-content:center;overflow-y:auto">
+              <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7A8A9B;font-weight:600">Đăng nhập hệ thống</div>
+              <h2 style="font-size:25px;font-weight:700;margin:9px 0 6px;color:#0E2A47">Xác thực tài khoản cán bộ</h2>
+              <div style="font-size:12.5px;color:#6C7B8B;margin-bottom:20px">Chọn tài khoản nghiệp vụ để trải nghiệm theo phân quyền RBAC:</div>
+
+              <div style="display:grid;gap:8px;margin-bottom:18px">
+                ${ACCOUNTS.map(acc => {
+                  const isSel = this.state.accountId === acc.id;
+                  const ini = acc.name.split(' ').slice(-2).map(w => w[0]).join('');
+                  return `
+                    <button onclick="app.setState({ accountId: '${acc.id}' })" style="text-align:left;display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:3px;background:#fff;border:1px solid ${isSel ? NAVY : '#D5DEE7'};box-shadow:${isSel ? '0 0 0 3px rgba(14,42,71,.09)' : 'none'}">
+                      <span style="width:34px;height:34px;border-radius:50%;background:${acc.av};color:#fff;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">${ini}</span>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:13.4px;font-weight:600;color:#16212E">${acc.name}</span>
+                        <span style="display:block;font-size:11.5px;color:#6C7B8B;margin-top:1px">${acc.title} · ${acc.scopeText}</span>
+                      </span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8B98A6;flex:none">${acc.username}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+
+              <label style="display:block;font-size:12px;font-weight:600;color:#42505F;margin-bottom:6px">Mật khẩu</label>
+              <input type="password" value="••••••••••" readonly style="width:100%;padding:11px 13px;border:1px solid #C9D3DD;border-radius:3px;background:#fff;margin-bottom:16px;font-size:14px;letter-spacing:.12em" />
+
+              <button onclick="app.doLogin()" style="width:100%;padding:13px;border:none;border-radius:3px;background:#0E2A47;color:#fff;font-size:14.5px;font-weight:600" class="btn-primary">Đăng nhập bằng ${a.name}</button>
+              <div style="margin-top:13px;font-size:11.5px;color:#7A8A9B;line-height:1.6">Sau 05 lần sai mật khẩu, hệ thống khóa 60 phút và sinh cảnh báo BRUTE_FORCE_LOGIN.</div>
+            </div>
+          </div>
+        `;
+      }
+
+      doLogin() {
+        this.state.logged = true;
+        this.state.screen = 'dash';
+        this.log('LOGIN', '—', 'Đăng nhập thành công');
+        this.render();
+      }
+
+      doLogout() {
+        this.state.logged = false;
+        this.render();
+      }
+
+      renderMainApp() {
+        const a = this.acct();
+        const s = this.state;
+        const scoped = this.visibleProfiles();
+
+        const pendingCA = scoped.filter(p => p.st === 'SUBMITTED_CA').length;
+        const pendingUB = scoped.filter(p => p.st === 'SUBMITTED_UBND').length;
+        const drafts = scoped.filter(p => p.st === 'DRAFT' || p.st === 'NEED_UPDATE').length;
+        const waitList = scoped.filter(p => p.mentor.indexOf('chưa') >= 0 || p.mentor === '—');
+        const waitingAppts = s.appts.filter(x => x.st === 'WAITING' || x.st === 'PENDING').length;
+        const voucherPending = s.vouchers.filter(v => v.st === 'PENDING_REVIEW').length;
+        const voucherApproved = s.vouchers.filter(v => v.st === 'CHIEF_APPROVED').length;
+
+        const rawGroups = [
+          { label: 'Điều hành', items: [{ id: 'dash', label: 'Bảng điều hành BI', count: '', perm: '' }] },
+          { label: 'Hồ sơ đối tượng', items: [
+            { id: 'profiles', label: 'Danh sách hồ sơ', count: String(scoped.length), perm: 'profile.view' },
+            { id: 'new', label: 'Khởi tạo hồ sơ mới', count: '', perm: 'profile.create' }
+          ]},
+          { label: 'Theo dõi hằng ngày', items: [
+            { id: 'checkin', label: 'Trình diện & sổ tay số', count: waitingAppts ? String(waitingAppts) : '', perm: 'checkin.view|checkin.record' },
+            { id: 'assign', label: 'Người giúp đỡ & kinh phí', count: (this.can('voucher.review') && voucherPending) ? String(voucherPending) : ((this.can('voucher.pay') && voucherApproved) ? String(voucherApproved) : ''), perm: 'assign.propose|assign.approve|voucher.review|voucher.pay' }
+          ]},
+          { label: 'Hội đồng & kết thúc', items: [
+            { id: 'meeting', label: 'Họp đánh giá xếp loại', count: '', perm: 'meeting.view|meeting.chair' },
+            { id: 'exit', label: 'Kết thúc & hoàn lương', count: '', perm: 'exit.propose|exit.review|exit.issue|exit.view' }
+          ]},
+          { label: 'Quản trị hệ thống', items: [
+            { id: 'audit', label: 'Nhật ký & bảo mật', count: '', perm: 'audit.view' },
+            { id: 'reports', label: 'Trung tâm Báo cáo BI', count: '', perm: 'report.view' }
+          ]}
+        ];
+
+        const allowed = it => !it.perm || it.perm.split('|').some(p => this.can(p));
+        const menuHtml = rawGroups.map(g => {
+          const visibleItems = g.items.filter(allowed);
+          if (!visibleItems.length) return '';
+          return `
+            <div style="margin-bottom:16px">
+              <div style="padding:0 18px 7px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#6C86A2;font-weight:700">${g.label}</div>
+              ${visibleItems.map(n => {
+                const active = s.screen === n.id;
+                return `
+                  <button onclick="app.setState({ screen: '${n.id}' })" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 18px;background:${active ? '#173A5E' : 'transparent'};color:${active ? '#FFFFFF' : '#AFC3D6'};border-left:3px solid ${active ? RED : 'transparent'}">
+                    <span style="flex:1;font-size:13px;font-weight:${active ? '600' : '400'};line-height:1.35">${n.label}</span>
+                    ${n.count ? `<span style="font-size:10.5px;font-weight:700;color:#E8B647">${n.count}</span>` : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }).join('');
+
+        const titles = {
+          dash: ['Bảng điều hành BI & Phân tích Trực quan', 'Số liệu realtime đa chiều trong phạm vi quản lý của bạn'],
+          profiles: ['Hồ sơ đối tượng', 'Hồ sơ điện tử, phân loại tuổi và thời hiệu áp dụng'],
+          new: ['Khởi tạo hồ sơ mới', 'Nhập nhân thân, phương tiện, tính tuổi và thời hiệu tự động'],
+          assign: ['Người giúp đỡ & kinh phí', 'Danh bạ, phân công kèm cặp và quyết toán 500.000đ/tháng'],
+          checkin: ['Trình diện & sổ tay số', 'Ghi nhận trình diện tại trụ sở và nhật ký thăm gặp'],
+          meeting: ['Họp đánh giá xếp loại', 'Điểm danh quorum, biên bản điện tử và biểu quyết'],
+          exit: ['Kết thúc & hoàn lương', 'Xét hoàn thành sớm, chứng nhận QR và xóa vết nhơ'],
+          audit: ['Nhật ký & bảo mật', 'Audit trail, cảnh báo an ninh và ma trận quyền'],
+          reports: ['Trung tâm Báo cáo BI & Xuất bản', '05 mẫu báo cáo chuẩn & phân tích xếp hạng điểm nóng']
+        };
+        const curTitle = titles[s.screen] || titles.dash;
+
+        const screenPerm = {
+          dash: '', profiles: 'profile.view', new: 'profile.create',
+          checkin: 'checkin.view|checkin.record', assign: 'assign.propose|assign.approve|voucher.review|voucher.pay',
+          meeting: 'meeting.view|meeting.chair', exit: 'exit.propose|exit.review|exit.issue|exit.view',
+          audit: 'audit.view', reports: 'report.view'
+        };
+        const curPerm = screenPerm[s.screen] || '';
+        const ok = !curPerm || curPerm.split('|').some(p => this.can(p));
+
+        const userIni = a.name.split(' ').slice(-2).map(w => w[0]).join('');
+
+        return `
+          <div style="min-height:100vh;display:grid;grid-template-columns:250px 1fr;background:#EEF1F5">
+            <!-- ASIDE NAVIGATION -->
+            <aside style="background:#0E2A47;display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+              <div style="padding:16px 18px 15px;border-bottom:1px solid #1C3A5C;display:flex;align-items:center;gap:11px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#C1121F;border:2px solid #E8B647;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px">CA</div>
+                <div style="line-height:1.3;min-width:0">
+                  <div style="color:#fff;font-size:12.5px;font-weight:700">Quản lý TTN chậm tiến</div>
+                  <div style="color:#7E96B0;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit}</div>
+                </div>
+              </div>
+
+              <nav style="flex:1;overflow-y:auto;padding:14px 0 18px">
+                ${menuHtml}
+              </nav>
+
+              <div style="padding:13px 18px;border-top:1px solid #1C3A5C;display:flex;gap:11px;align-items:center">
+                <div style="width:32px;height:32px;border-radius:50%;background:${a.av};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex:none">${userIni}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="color:#fff;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+                  <div style="color:#7E96B0;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.roleName}</div>
+                </div>
+                <button onclick="app.doLogout()" style="padding:5px 8px;border:1px solid #27466B;background:transparent;color:#9FB6CD;border-radius:3px;font-size:10.5px">Đổi</button>
+              </div>
+            </aside>
+
+            <!-- MAIN WORKSPACE -->
+            <main style="min-width:0;display:flex;flex-direction:column">
+              <header style="background:#fff;border-bottom:1px solid #D8E0E8;padding:12px 22px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:20">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:17px;font-weight:700;color:#0E2A47">${curTitle[0]}</div>
+                  <div style="font-size:11.5px;color:#7A8A9B;margin-top:2px">${curTitle[1]}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px">
+                  <div style="padding:6px 11px;border:1px solid #DCE3EA;border-radius:3px;background:#F8FAFC">
+                    <span style="font-size:11px;color:#7A8A9B">Phạm vi dữ liệu: </span>
+                    <span style="font-size:11.5px;color:#0E2A47;font-weight:600">${a.scopeText}</span>
+                  </div>
+                </div>
+              </header>
+
+              <div style="padding:20px 22px 44px;flex:1;min-width:0">
+                ${!ok ? this.renderDenied() : this.renderScreen(s.screen)}
+              </div>
+            </main>
+
+            <!-- TOAST NOTIFICATION -->
+            ${s.toast ? `
+              <div class="toast-box ${s.toastBad ? 'bad' : ''}">
+                <span style="font-size:16px">${s.toastBad ? '⚠️' : '✅'}</span>
+                <div style="font-size:12.8px;font-weight:600;line-height:1.5">${s.toast}</div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      renderDenied() {
+        const a = this.acct();
+        return `
+          <div class="card" style="padding:40px;text-align:center;max-width:640px;margin:40px auto">
+            <div style="width:44px;height:44px;border-radius:50%;background:#FDECEE;color:#96101B;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;font-weight:700">!</div>
+            <div style="font-size:16px;font-weight:700;color:#96101B">Tài khoản không đủ thẩm quyền truy cập chức năng này</div>
+            <div style="font-size:12.8px;color:#6C7B8B;margin-top:9px;line-height:1.65">Tài khoản ${a.username} (${a.roleName}) không có quyền với chức năng này theo ma trận RBAC. Hãy đổi tài khoản có thẩm quyền phù hợp.</div>
+            <div style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8B98A6">Yêu cầu truy cập đã được ghi vết: UNAUTHORIZED_SCOPE_ACCESS</div>
+          </div>
+        `;
+      }
+
+      renderScreen(screen) {
+        switch (screen) {
+          case 'dash': return this.renderDash();
+          case 'profiles': return this.renderProfiles();
+          case 'new': return this.renderNew();
+          case 'assign': return this.renderAssign();
+          case 'checkin': return this.renderCheckin();
+          case 'meeting': return this.renderMeeting();
+          case 'exit': return this.renderExit();
+          case 'audit': return this.renderAudit();
+          case 'reports': return this.renderReports();
+          default: return this.renderDash();
+        }
+      }
+
+      // =======================================================================
+      // M07: EXECUTIVE BI DASHBOARD
+      // =======================================================================
+      renderDash() {
+        const scoped = this.visibleProfiles();
+        const a = this.acct();
+        const active = scoped.filter(p => p.st === 'ACTIVE_MANAGED').length;
+        const absents = this.state.appts.filter(x => x.st === 'ABSENT').length;
+        const totalOk = this.state.vouchers.filter(v => v.st !== 'LOCKED').reduce((n, v) => n + v.amount, 0);
+        const paid = this.state.vouchers.filter(v => v.st === 'PAID').reduce((n, v) => n + v.amount, 0);
+
+        const totalScoped = scoped.length || 1;
+        const grp = n => scoped.filter(p => p.group.indexOf(n) === 0).length;
+        const ageChart = [
+          ['Nhóm 1', 'Đủ 12 – dưới 14 tuổi', '#7FA0C0'],
+          ['Nhóm 2', 'Đủ 14 – dưới 16 tuổi', NAVY],
+          ['Nhóm 3', 'Đủ 16 – dưới 18 tuổi', '#3F6D9E'],
+          ['Nhóm 4', 'Đủ 18 tuổi trở lên', '#9AA7B4']
+        ].map(([k, label, color]) => {
+          const n = grp(k);
+          return { label, pct: Math.round(n / totalScoped * 100) + '%', text: Math.round(n / totalScoped * 100) + '% · ' + n + ' em', color };
+        });
+
+        const violOf = kw => scoped.filter(p => p.viol.toLowerCase().includes(kw)).length;
+        const violChart = [
+          ['xe', 'Đua xe / độ chế xe', RED],
+          ['gây rối', 'Tụ tập gây rối TTCC', '#D8642F'],
+          ['ma túy', 'Sử dụng ma túy', AMBER],
+          ['trộm', 'Trộm cắp / tái phạm', '#9AA7B4'],
+          ['bạc', 'Đánh bạc', '#6E7F90']
+        ].map(([kw, label, color]) => {
+          const n = violOf(kw);
+          return { label, pct: Math.round(n / totalScoped * 100) + '%', text: Math.round(n / totalScoped * 100) + '% · ' + n + ' em', color };
+        });
+
+        const funnelSteps = [
+          { label: '1. Tiếp nhận & Quyết định', count: '50 em', pct: '100%', color: NAVY },
+          { label: '2. Đang giáo dục tại xã', count: '50 em', pct: '100%', color: NAVY },
+          { label: '3. Rèn luyện tích cực (Điều 50)', count: '43 em', pct: '86%', color: BLUE },
+          { label: '4. Xét sớm 1/2 thời hạn', count: '12 em', pct: '24%', color: AMBER },
+          { label: '5. Hoàn thành đúng hạn', count: '36 em', pct: '72%', color: BLUE },
+          { label: '6. Đã xóa vết nhơ 1 năm', count: '34 em', pct: '68%', color: GREEN }
+        ];
+
+        const hamletCompliance = [
+          { hamlet: 'Ấp Tân Thới', pct: '96%', stat: '96% Đúng giờ', color: GREEN },
+          { hamlet: 'Ấp Bình Hòa', pct: '88%', stat: '88% Đúng · 1 Vắng', color: AMBER },
+          { hamlet: 'Ấp Phú Thuận', pct: '95%', stat: '95% Đúng giờ', color: GREEN }
+        ];
+
+        const taskDefs = {
+          cskv: [
+            { label: 'Hồ sơ nháp / cần bổ sung của bạn', count: scoped.filter(p => p.st === 'DRAFT' || p.st === 'NEED_UPDATE').length, sc: 'profiles' },
+            { label: 'Lịch trình diện chưa ghi nhận hôm nay', count: this.state.appts.filter(x => x.st === 'WAITING' || x.st === 'PENDING').length, sc: 'checkin' },
+            { label: 'Đối tượng chờ đề xuất người giúp đỡ', count: scoped.filter(p => p.mentor.indexOf('chưa') >= 0 || p.mentor === '—').length, sc: 'assign' }
+          ],
+          truongca: [
+            { label: 'Hồ sơ chờ thẩm định & ký tờ trình', count: scoped.filter(p => p.st === 'SUBMITTED_CA').length, sc: 'profiles' },
+            { label: 'Phiếu chi chờ thẩm định', count: this.state.vouchers.filter(v => v.st === 'PENDING_REVIEW').length, sc: 'assign' },
+            { label: 'Cảnh báo an ninh chưa xử lý', count: this.state.incidents.filter(i => i.locked).length, sc: 'audit' }
+          ],
+          ubnd: [
+            { label: 'Tờ trình chờ ký ban hành quyết định', count: scoped.filter(p => p.st === 'SUBMITTED_UBND').length, sc: 'profiles' },
+            { label: 'Phiếu chi chờ ký duyệt chi', count: this.state.vouchers.filter(v => v.st === 'CHIEF_APPROVED').length, sc: 'assign' },
+            { label: 'Biên bản họp chờ chủ trì ký số', count: this.state.signed ? 0 : 1, sc: 'meeting' }
+          ],
+          tinh: [
+            { label: 'Đơn vị dưới ngưỡng chỉ tiêu trình diện', count: 2, sc: 'reports' },
+            { label: 'Sự cố an ninh mức CRITICAL', count: this.state.incidents.filter(i => i.sev === 'CRITICAL' && i.locked).length, sc: 'audit' }
+          ]
+        };
+
+        const myTasks = taskDefs[a.role] || [];
+
+        return `
+          <div>
+            <!-- 5 THẺ KPI CỐT LÕI -->
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px">
+              <div class="card" style="border-top:3px solid ${NAVY};padding:13px 14px">
+                <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#6C7B8B;font-weight:600">Đang quản lý</div>
+                <div style="font-size:26px;font-weight:700;color:#0E2A47;line-height:1.15;margin:6px 0 2px">${d2(active)}</div>
+                <div style="font-size:11.8px;color:${NAVY};font-weight:600">▲ +3 trong tháng</div>
+                <div style="font-size:11px;color:#8B98A6;margin-top:4px">${a.scopeText}</div>
+              </div>
+              <div class="card" style="border-top:3px solid ${absents ? RED : GREEN};padding:13px 14px">
+                <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#6C7B8B;font-weight:600">Trình diện đúng hẹn</div>
+                <div style="font-size:26px;font-weight:700;color:#0E2A47;line-height:1.15;margin:6px 0 2px">95.8%</div>
+                <div style="font-size:11.8px;color:${absents ? RED : GREEN};font-weight:600">${absents ? absents + ' vắng không phép' : 'Đạt chỉ tiêu an toàn'}</div>
+                <div style="font-size:11px;color:#8B98A6;margin-top:4px">Cập nhật realtime tại CA Xã</div>
+              </div>
+              <div class="card" style="border-top:3px solid ${GREEN};padding:13px 14px">
+                <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#6C7B8B;font-weight:600">Cảm hóa thành công</div>
+                <div style="font-size:26px;font-weight:700;color:#0E2A47;line-height:1.15;margin:6px 0 2px">88.5%</div>
+                <div style="font-size:11.8px;color:${GREEN};font-weight:600">▲ +4.0% so kỳ trước</div>
+                <div style="font-size:11px;color:#8B98A6;margin-top:4px">Đạt và vượt chỉ tiêu</div>
+              </div>
+              <div class="card" style="border-top:3px solid ${GREEN};padding:13px 14px">
+                <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#6C7B8B;font-weight:600">Đã xóa vết nhơ</div>
+                <div style="font-size:26px;font-weight:700;color:#0E2A47;line-height:1.15;margin:6px 0 2px">18 ca</div>
+                <div style="font-size:11.8px;color:${GREEN};font-weight:600">100% hoàn lương</div>
+                <div style="font-size:11px;color:#8B98A6;margin-top:4px">Đóng hồ sơ sau 1 năm</div>
+              </div>
+              <div class="card" style="border-top:3px solid ${BLUE};padding:13px 14px">
+                <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#6C7B8B;font-weight:600">Kinh phí đã chi</div>
+                <div style="font-size:26px;font-weight:700;color:#0E2A47;line-height:1.15;margin:6px 0 2px">${(paid / 1000000).toFixed(1)}tr</div>
+                <div style="font-size:11.8px;color:${BLUE};font-weight:600">Hợp lệ ${money(totalOk)}</div>
+                <div style="font-size:11px;color:#8B98A6;margin-top:4px">Kỳ tháng 08/2026</div>
+              </div>
+            </div>
+
+            <!-- HÀNG 1: BIỂU ĐỒ CƠ CẤU & XU HƯỚNG -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:12px;margin-bottom:14px">
+              <div class="card" style="padding:15px 16px">
+                <div style="font-size:13px;font-weight:700;color:#0E2A47;margin-bottom:13px">Cơ cấu 4 Nhóm tuổi</div>
+                ${ageChart.map(ac => `
+                  <div style="margin-bottom:10px">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+                      <span style="color:#42505F;font-weight:500">${ac.label}</span>
+                      <span class="font-mono" style="color:#6C7B8B">${ac.text}</span>
+                    </div>
+                    <div style="height:7px;background:#EDF1F5;border-radius:2px;overflow:hidden"><div style="height:100%;width:${ac.pct};background:${ac.color}"></div></div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="card" style="padding:15px 16px">
+                <div style="font-size:13px;font-weight:700;color:#0E2A47;margin-bottom:13px">Cơ cấu Hành vi vi phạm</div>
+                ${violChart.map(vc => `
+                  <div style="margin-bottom:10px">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+                      <span style="color:#42505F;font-weight:500">${vc.label}</span>
+                      <span class="font-mono" style="color:#6C7B8B">${vc.text}</span>
+                    </div>
+                    <div style="height:7px;background:#EDF1F5;border-radius:2px;overflow:hidden"><div style="height:100%;width:${vc.pct};background:${vc.color}"></div></div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="card" style="padding:15px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+                  <div style="font-size:13px;font-weight:700;color:#0E2A47">Xu hướng Vi phạm 6 Tháng</div>
+                  <span style="font-size:11px;color:#1B7F4B;font-weight:600">▼ -18% so với T03</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-end;height:84px;padding:6px 0 4px;border-bottom:1px solid #EDF1F5">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">8</span><div style="width:100%;height:65%;background:#7E96B0;border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T03</span></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">10</span><div style="width:100%;height:82%;background:#7E96B0;border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T04</span></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">12</span><div style="width:100%;height:100%;background:${RED};border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T05</span></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">7</span><div style="width:100%;height:58%;background:#7E96B0;border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T06</span></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">5</span><div style="width:100%;height:42%;background:#7E96B0;border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T07</span></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end"><span class="font-mono" style="font-size:10px;color:#6C7B8B;margin-bottom:2px">3</span><div style="width:100%;height:25%;background:${GREEN};border-radius:2px"></div><span style="font-size:10px;color:#8B98A6;margin-top:4px">T08</span></div>
+                </div>
+                <div style="font-size:11.2px;color:#8B98A6;margin-top:8px;line-height:1.4">Số vụ việc tiếp nhận mới giảm mạnh nhờ tăng cường tuần tra và quản lý lịch trình diện.</div>
+              </div>
+            </div>
+
+            <!-- HÀNG 2: PHỄU CẢM HÓA & TUÂN THỦ TRÌNH DIỆN THEO THÔN ẤP -->
+            <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-bottom:14px">
+              <div class="card" style="padding:15px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:13px">
+                  <div style="font-size:13px;font-weight:700;color:#0E2A47">Phễu Tiến trình Cảm hóa &amp; Hoàn lương (Rehabilitation Funnel)</div>
+                  <span style="font-size:11px;color:#8B98A6">6 giai đoạn phục hồi</span>
+                </div>
+                ${funnelSteps.map(fn => `
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                    <span style="width:170px;font-size:11.8px;color:#42505F;flex:none">${fn.label}</span>
+                    <div style="flex:1;height:14px;background:#EDF1F5;border-radius:2px;overflow:hidden">
+                      <div style="height:100%;width:${fn.pct};background:${fn.color};display:flex;align-items:center;padding-left:6px;color:#fff;font-size:9.5px;font-weight:700;font-family:'IBM Plex Mono',monospace">${fn.count}</div>
+                    </div>
+                    <span class="font-mono" style="width:46px;text-align:right;font-size:11.5px;font-weight:600;color:#0E2A47;flex:none">${fn.pct}</span>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="card" style="padding:15px 16px">
+                <div style="font-size:13px;font-weight:700;color:#0E2A47;margin-bottom:12px">Tuân thủ Trình diện &amp; Nghiệp vụ tại CA Xã</div>
+                <div style="margin-bottom:12px">
+                  <div style="font-size:11.3px;color:#6C7B8B;margin-bottom:6px">Tỷ lệ có mặt theo địa bàn Thôn/Ấp:</div>
+                  ${hamletCompliance.map(hc => `
+                    <div style="margin-bottom:7px">
+                      <div style="display:flex;justify-content:space-between;font-size:11.8px;margin-bottom:3px">
+                        <span style="color:#16212E;font-weight:600">${hc.hamlet}</span>
+                        <span class="font-mono" style="color:${hc.color};font-weight:600">${hc.stat}</span>
+                      </div>
+                      <div style="height:6px;background:#EDF1F5;border-radius:2px;overflow:hidden"><div style="height:100%;width:${hc.pct};background:${hc.color}"></div></div>
+                    </div>
+                  `).join('')}
+                </div>
+                <div style="padding-top:10px;border-top:1px solid #EDF1F5;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px">
+                  <div style="background:#F6FAF8;border:1px solid #D7EDE2;border-radius:3px;padding:7px 9px">
+                    <div style="color:#1B7F4B;font-weight:700">Test MT: 24/24 Âm tính</div>
+                    <div style="color:#6C7B8B;font-size:10.5px;margin-top:2px">100% đạt chỉ tiêu an toàn</div>
+                  </div>
+                  <div style="background:#FBF8F3;border:1px solid #EFE4D2;border-radius:3px;padding:7px 9px">
+                    <div style="color:#B4740A;font-weight:700">Xe độ chế: 02 trường hợp</div>
+                    <div style="color:#6C7B8B;font-size:10.5px;margin-top:2px">Đã yêu cầu phục hồi pô</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HÀNG 3: HÀNG ĐỢI THEO VAI TRÒ & CẢNH BÁO SỚM -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="card">
+                <div class="card-header">Hàng đợi công việc của ${a.roleName}</div>
+                ${myTasks.map(t => `
+                  <button onclick="app.setState({ screen: '${t.sc}' })" style="display:flex;width:100%;text-align:left;gap:11px;padding:13px 16px;border-bottom:1px solid #F0F3F6;align-items:center">
+                    <span style="flex:1;font-size:12.8px;color:#16212E">${t.label}</span>
+                    <span style="font-size:13px;font-weight:700;color:${t.count ? RED : GREY}">${d2(t.count)}</span>
+                  </button>
+                `).join('')}
+                <div style="padding:12px 16px;font-size:11.5px;color:#8B98A6;line-height:1.55">Hàng đợi được sinh từ quyền của tài khoản ${a.username}. Thao tác duyệt/ký sẽ cập nhật ngay các con số này.</div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">Trung tâm Cảnh báo Sớm · 28/08/2026</div>
+                <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #F0F3F6;align-items:flex-start">
+                  <span style="width:4px;align-self:stretch;background:${RED};border-radius:2px;flex:none"></span>
+                  <div style="flex:1">
+                    <div style="font-size:12.8px;font-weight:600;color:#16212E">01 đối tượng chưa có mặt theo lịch trình diện hôm nay</div>
+                    <div style="font-size:11.8px;color:#6C7B8B;margin-top:2px">Trịnh Văn Sơn (HS-2025-00004) — Vắng quá 4 tiếng không có lý do</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #F0F3F6;align-items:flex-start">
+                  <span style="width:4px;align-self:stretch;background:${AMBER};border-radius:2px;flex:none"></span>
+                  <div style="flex:1">
+                    <div style="font-size:12.8px;font-weight:600;color:#16212E">01 hồ sơ đủ 350 ngày cần thẩm tra an toàn trước khi xóa vết nhơ</div>
+                    <div style="font-size:11.8px;color:#6C7B8B;margin-top:2px">Hoàng Anh Tú · CN-2026-00118 — hạn thẩm tra 30/08/2026</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #F0F3F6;align-items:flex-start">
+                  <span style="width:4px;align-self:stretch;background:${RED};border-radius:2px;flex:none"></span>
+                  <div style="flex:1">
+                    <div style="font-size:12.8px;font-weight:600;color:#16212E">01 sự cố an ninh mức CRITICAL chưa xử lý</div>
+                    <div style="font-size:11.8px;color:#6C7B8B;margin-top:2px">SEC-202608-00071 — tải hàng loạt ảnh chân dung, tài khoản đang bị khóa</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // =======================================================================
+      // M01: DANH SÁCH HỒ SƠ & CHI TIẾT ĐỐI TƯỢNG
+      // =======================================================================
+      renderProfiles() {
+        const a = this.acct();
+        const s = this.state;
+        const scoped = this.visibleProfiles();
+
+        const rows = scoped.filter(p => {
+          if (s.filter !== 'ALL' && p.st !== s.filter) return false;
+          if (!s.q) return true;
+          const q = s.q.toLowerCase();
+          return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || (p.vehicle || '').toLowerCase().includes(q);
+        });
+
+        const selP = rows.find(p => p.code === s.selCode) || rows[0] || scoped[0] || s.profiles[0] || null;
+
+        const filters = [
+          ['ALL', 'Tất cả'],
+          ['ACTIVE_MANAGED', 'Đang quản lý'],
+          ['SUBMITTED_CA', 'Chờ Trưởng CA'],
+          ['SUBMITTED_UBND', 'Chờ UBND'],
+          ['DRAFT', 'Nháp']
+        ];
+
+        return `
+          <div>
+            <!-- TOOLBAR: SEARCH, FILTERS, BUTTONS -->
+            <div style="display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+              <input type="text" value="${s.q}" oninput="app.setState({ q: this.value })" placeholder="Tìm theo họ tên, mã hồ sơ, biển số xe…" style="flex:1;min-width:240px;padding:8px 12px;border:1px solid #CFD8E1;border-radius:3px;background:#fff;font-size:13px" />
+              ${filters.map(([id, label]) => {
+                const on = s.filter === id;
+                return `
+                  <button onclick="app.setState({ filter: '${id}' })" style="padding:7px 12px;border:1px solid ${on ? NAVY : '#CFD8E1'};background:${on ? NAVY : '#fff'};color:${on ? '#fff' : '#42505F'};border-radius:3px;font-size:12.3px;font-weight:600">${label}</button>
+                `;
+              }).join('')}
+              ${this.can('profile.create') ? `
+                <button onclick="app.setState({ screen: 'new' })" class="btn-red">+ Khởi tạo hồ sơ</button>
+              ` : ''}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 380px;gap:12px;align-items:start">
+              <!-- BẢNG DANH SÁCH HỒ SƠ (CSS GRID CỐT LÕI ĐÃ FIX) -->
+              <div class="card">
+                <div class="grid-table-header" style="grid-template-columns: 95px 1.2fr 95px 125px 110px 90px 105px;">
+                  <div>Mã hồ sơ</div>
+                  <div>Đối tượng</div>
+                  <div>Địa bàn</div>
+                  <div>Hành vi</div>
+                  <div>Người giúp đỡ</div>
+                  <div>Tiến độ</div>
+                  <div>Trạng thái</div>
+                </div>
+                <div>
+                  ${rows.map(p => {
+                    const st = STATUS[p.st] || { l: p.st || '—', bg: '#EEF1F5', fg: '#5B6B7C' };
+                    const isSel = selP && p.code === selP.code;
+                    const pct = p.pct || 0;
+                    const pctColor = pct >= 75 ? GREEN : pct >= 40 ? BLUE : '#93A2B1';
+                    return `
+                      <div onclick="app.setState({ selCode: '${p.code}' })" class="grid-table-row ${isSel ? 'active' : ''}" style="grid-template-columns: 95px 1.2fr 95px 125px 110px 90px 105px;">
+                        <div class="font-mono" style="font-size:11.5px;color:#0E2A47;font-weight:600">${p.code}</div>
+                        <div style="min-width:0">
+                          <div style="font-weight:600;color:#16212E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+                          <div style="font-size:11px;color:#8B98A6;margin-top:1px">${p.sub}</div>
+                        </div>
+                        <div style="color:#42505F;font-size:12px">${p.hamlet}</div>
+                        <div style="color:#42505F;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.viol}</div>
+                        <div style="color:#42505F;font-size:12px">${p.mentor}</div>
+                        <div>
+                          <div style="height:6px;background:#EDF1F5;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${pctColor}"></div></div>
+                          <div class="font-mono" style="font-size:10.5px;color:#8B98A6;margin-top:3px">${pct}%</div>
+                        </div>
+                        <div><span class="badge" style="background:${st.bg};color:${st.fg}">${st.l}</span></div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+                <div style="padding:10px 13px;font-size:11.5px;color:#8B98A6;border-top:1px solid #EDF1F5">
+                  Hiển thị ${rows.length}/${scoped.length} hồ sơ thuộc phạm vi ${a.scopeText} (toàn hệ thống: ${s.profiles.length})
+                </div>
+              </div>
+
+              <!-- THẺ CHI TIẾT HỒ SƠ BÊN PHẢI -->
+              ${selP ? this.renderProfileDetail(selP) : '<div class="card" style="padding:20px;text-align:center;color:#8B98A6">Không có hồ sơ</div>'}
+            </div>
+          </div>
+        `;
+      }
+
+      renderProfileDetail(p) {
+        const a = this.acct();
+        const acts = [];
+
+        if (this.can('profile.submit') && (p.st === 'DRAFT' || p.st === 'NEED_UPDATE')) {
+          acts.push(`
+            <button onclick="app.submitProfileForApproval('${p.code}')" class="btn-primary" style="width:100%;text-align:left">Trình Trưởng Công an xã duyệt</button>
+          `);
+        }
+        if (this.can('profile.approve') && p.st === 'SUBMITTED_CA') {
+          acts.push(`
+            <button onclick="app.approveProfileToUbnd('${p.code}')" class="btn-primary" style="width:100%;text-align:left">Ký tờ trình & chuyển UBND xã</button>
+            <button onclick="app.requestProfileUpdate('${p.code}')" class="btn-outline" style="width:100%;text-align:left">Yêu cầu bổ sung hồ sơ</button>
+          `);
+        }
+        if (this.can('profile.issue') && p.st === 'SUBMITTED_UBND') {
+          acts.push(`
+            <button onclick="app.issueProfileDecision('${p.code}')" class="btn-primary" style="width:100%;text-align:left">Ký số ban hành quyết định</button>
+            <button onclick="app.rejectProfile('${p.code}')" class="btn-outline" style="width:100%;text-align:left">Bác bỏ đề nghị</button>
+          `);
+        }
+        if (!acts.length) {
+          acts.push(`
+            <button onclick="app.viewProfileLog('${p.code}')" class="btn-outline" style="width:100%;text-align:left">Xem hồ sơ (chỉ đọc)</button>
+          `);
+        }
+
+        const facts = [
+          ['Ngày sinh', p.dob],
+          ['Nhóm tuổi', p.group],
+          ['Hành vi vi phạm', p.viol],
+          ['Diện cư trú', p.res],
+          ['Thời hạn áp dụng', p.dur],
+          ['Người giúp đỡ', p.mentor],
+          ['Xếp loại gần nhất', p.rating],
+          ['Giám hộ', p.guardian],
+          ['Phương tiện', p.vehicle]
+        ];
+
+        return `
+          <div class="card" style="position:sticky;top:80px">
+            <div style="padding:14px 15px;background:#0E2A47;color:#fff">
+              <div class="font-mono" style="font-size:11px;color:#9FB6CD">${p.code}</div>
+              <div style="font-size:16px;font-weight:700;margin-top:3px">${p.name}</div>
+              <div style="font-size:11.5px;color:#A9BCD0;margin-top:2px">${p.sub} · ${p.hamlet}</div>
+            </div>
+
+            <!-- CHÂN DUNG CÓ WATERMARK AN NINH PII -->
+            <div style="position:relative;height:112px;background:repeating-linear-gradient(45deg,#E9EEF3,#E9EEF3 8px,#E2E9F0 8px,#E2E9F0 16px);display:flex;align-items:center;justify-content:center;border-bottom:1px solid #E7ECF1;overflow:hidden">
+              <span class="font-mono" style="font-size:11px;color:#7E8C9B">ảnh chân dung · 02 ảnh bắt buộc</span>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+                <div class="font-mono" style="transform:rotate(-18deg);font-size:10px;color:rgba(14,42,71,.25);text-align:center;line-height:1.5">${a.name} · ${p.code}<br>28/08/2026 · BẢO MẬT PII</div>
+              </div>
+            </div>
+
+            <!-- FACTS -->
+            <div style="padding:13px 15px;border-bottom:1px solid #EDF1F5">
+              ${facts.map(([k, v]) => `
+                <div style="display:flex;justify-content:space-between;gap:12px;padding:4.5px 0;font-size:12.3px">
+                  <span style="color:#6C7B8B">${k}</span>
+                  <span style="color:#16212E;font-weight:600;text-align:right">${v || '—'}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- TÀI LIỆU BẮT BUỘC BR-M01-05 -->
+            <div style="padding:13px 15px;border-bottom:1px solid #EDF1F5">
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6C7B8B;font-weight:600;margin-bottom:8px">Tài liệu bắt buộc (BR-M01-05)</div>
+              ${DOC_LABELS.map((l, i) => {
+                const ok = i < (p.docsOk || 0);
+                return `
+                  <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.2px">
+                    <span style="width:15px;height:15px;border-radius:2px;background:${ok ? GREEN : AMBER};color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex:none">${ok ? '✓' : '!'}</span>
+                    <span style="color:#42505F;flex:1">${l}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- THAO TÁC THEO RBAC -->
+            <div style="padding:13px 15px">
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6C7B8B;font-weight:600;margin-bottom:9px">Thao tác khả dụng với tài khoản của bạn</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                ${acts.join('')}
+              </div>
+              <div style="margin-top:10px;font-size:11.3px;color:#8B98A6;line-height:1.55">Nút thao tác được sinh tự động theo quyền của tài khoản ${a.username} và trạng thái hồ sơ.</div>
+            </div>
+
+            <!-- LỊCH SỬ XỬ LÝ -->
+            <div style="padding:12px 15px;border-top:1px solid #EDF1F5;background:#F8FAFC">
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6C7B8B;font-weight:600;margin-bottom:7px">Lịch sử xử lý hồ sơ</div>
+              ${(p.history || []).slice(0, 4).map(h => `
+                <div style="display:flex;gap:9px;padding:3.5px 0;font-size:11.6px;line-height:1.45">
+                  <span class="font-mono" style="color:#8B98A6;flex:none">${h.time}</span>
+                  <span style="color:#42505F">${h.text}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      submitProfileForApproval(code) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          if ((p.docsOk || 0) < 5) {
+            this.flash('Thiếu ' + (5 - (p.docsOk || 0)) + ' tài liệu bắt buộc (BR-M01-05) — chưa thể trình duyệt.', true);
+            return;
+          }
+          this.patchProfile(code, { st: 'SUBMITTED_CA' }, this.acct().name + ' trình Trưởng Công an xã');
+          this.log('SUBMIT', code, 'Trình duyệt hồ sơ');
+          this.flash(p.name + ': hồ sơ chuyển trạng thái "Chờ Trưởng CA".');
+        }
+      }
+
+      approveProfileToUbnd(code) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          this.patchProfile(code, { st: 'SUBMITTED_UBND' }, this.acct().name + ' ký tờ trình, chuyển UBND xã');
+          this.log('APPROVE', code, 'Ký tờ trình chuyển UBND');
+          this.flash(p.name + ': đã chuyển Chủ tịch UBND xã ký ban hành.');
+        }
+      }
+
+      requestProfileUpdate(code) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          this.patchProfile(code, { st: 'NEED_UPDATE' }, this.acct().name + ' yêu cầu bổ sung hồ sơ');
+          this.log('REQUEST_UPDATE', code, 'Yêu cầu bổ sung');
+          this.flash(p.name + ': đã trả hồ sơ về CSKV để bổ sung.', true);
+        }
+      }
+
+      issueProfileDecision(code) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          this.patchProfile(code, { st: 'ACTIVE_MANAGED', pct: 2, dur: '6 tháng (28/08/2026 – 28/02/2027)' }, this.acct().name + ' ký ban hành quyết định áp dụng');
+          this.log('ISSUE_DECISION', code, 'Ký số ban hành quyết định');
+          this.flash(p.name + ': quyết định đã ban hành, chuyển sang bước phân công người giúp đỡ.');
+        }
+      }
+
+      rejectProfile(code) {
+        const p = this.state.profiles.find(x => x.code === code);
+        if (p) {
+          this.patchProfile(code, { st: 'REJECTED' }, this.acct().name + ' bác bỏ đề nghị');
+          this.log('REJECT', code, 'Bác bỏ đề nghị');
+          this.flash(p.name + ': đề nghị đã bị bác bỏ.', true);
+        }
+      }
+
+      viewProfileLog(code) {
+        this.log('VIEW_PROFILE', code, 'Xem chi tiết hồ sơ');
+        this.flash('Đã ghi vết thao tác xem hồ sơ ' + code + '.');
+      }
+
+      // =======================================================================
+      // M01: FORM KHỞI TẠO HỒ SƠ MỚI
+      // =======================================================================
+      renderNew() {
+        const s = this.state;
+        const c = this.calc();
+        const a = this.acct();
+        const hamlets = a.hamlets || HAMLETS;
+
+        const blocked = c.expired;
+        const verdict = blocked
+          ? { title: 'Chặn trình duyệt — hết thời hiệu', text: 'Quá hạn ' + Math.abs(c.days) + ' ngày so với hạn chót ' + fmt(c.exp) + '. Hồ sơ sẽ lưu ở trạng thái EXPIRED_STATUTE.', bg: '#FDF0F1', bd: '#F0BFC3', fg: '#96101B' }
+          : c.days <= 30
+            ? { title: 'Cảnh báo — sắp hết thời hiệu', text: 'Còn ' + c.days + ' ngày trước hạn chót ' + fmt(c.exp) + '. Cần trình duyệt sớm.', bg: '#FDF8EC', bd: '#E5D3AC', fg: '#7A5B14' }
+            : { title: 'Đủ điều kiện lập hồ sơ', text: 'Còn ' + c.days + ' ngày thời hiệu. ' + (s.fDocs.length === 5 ? 'Đã đủ 05 tài liệu bắt buộc.' : 'Còn thiếu ' + (5 - s.fDocs.length) + ' tài liệu bắt buộc.'), bg: '#EDF7F1', bd: '#BFE0CD', fg: '#14663C' };
+
+        return `
+          <div style="display:grid;grid-template-columns:1fr 340px;gap:12px;align-items:start">
+            <div class="card">
+              <div style="padding:16px 18px">
+                <div style="font-size:11.5px;font-weight:700;color:#0E2A47;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px">Nhân thân, cư trú, phương tiện &amp; vi phạm</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px 16px">
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Họ và tên đối tượng <span style="color:#C1121F">*</span></label>
+                    <input type="text" value="${s.fName}" oninput="app.setState({ fName: this.value.toUpperCase() })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px;text-transform:uppercase" />
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Ngày sinh <span style="color:#C1121F">*</span></label>
+                    <input type="date" value="${s.fDob}" onchange="app.setState({ fDob: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Ngày vi phạm lần cuối <span style="color:#C1121F">*</span></label>
+                    <input type="date" value="${s.fViolDate}" onchange="app.setState({ fViolDate: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Hành vi vi phạm chính <span style="color:#C1121F">*</span></label>
+                    <select onchange="app.setState({ fViolType: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px;background:#fff">
+                      ${VIOLS.map(v => `<option value="${v.id}" ${s.fViolType === v.id ? 'selected' : ''}>${v.label}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Số ngày ở thực tế tại địa bàn <span style="color:#C1121F">*</span></label>
+                    <input type="number" value="${s.fDays}" oninput="app.setState({ fDays: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                    <div style="font-size:10.8px;color:#8B98A6;margin-top:4px">&lt; 30 ngày → phân luồng quản lý lưu động (BR-M01-03)</div>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Địa bàn thôn/ấp <span style="color:#C1121F">*</span></label>
+                    <select onchange="app.setState({ fHamlet: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px;background:#fff">
+                      ${hamlets.map(h => `<option value="${h}" ${s.fHamlet === h ? 'selected' : ''}>${h}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Họ tên cha/mẹ/người giám hộ <span style="color:#C1121F">*</span></label>
+                    <input type="text" value="${s.fGuardian}" oninput="app.setState({ fGuardian: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Số điện thoại giám hộ <span style="color:#C1121F">*</span></label>
+                    <input type="text" value="${s.fPhone}" oninput="app.setState({ fPhone: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                  </div>
+                  <div style="grid-column:1/-1">
+                    <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Phương tiện di chuyển &amp; Biển số xe (nếu có)</label>
+                    <input type="text" value="${s.fVehicle}" oninput="app.setState({ fVehicle: this.value })" placeholder="VD: 59X1-482.19 · Yamaha Exciter (độ pô) hoặc Đi bộ / Xe đạp" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px" />
+                  </div>
+                </div>
+
+                <div style="margin-top:18px;padding-top:15px;border-top:1px solid #EDF1F5">
+                  <div style="font-size:11.5px;font-weight:700;color:#0E2A47;letter-spacing:.05em;text-transform:uppercase;margin-bottom:11px">Tài liệu bắt buộc — tích để xác nhận đã đính kèm</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    ${DOC_LABELS.map((l, i) => {
+                      const on = s.fDocs.includes(i);
+                      return `
+                        <button onclick="app.toggleDoc(${i})" style="display:flex;align-items:center;gap:9px;text-align:left;padding:9px 11px;border-radius:3px;border:1px solid ${on ? '#BFE0CD' : '#CFD8E1'};background:${on ? '#F3FAF6' : '#fff'}">
+                          <span style="width:16px;height:16px;border-radius:2px;background:${on ? GREEN : '#C3CEDA'};color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex:none">${on ? '✓' : ''}</span>
+                          <span style="font-size:12.2px;color:#42505F;flex:1">${l}</span>
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CỘT KẾT QUẢ TÍNH TOÁN & SUBMIT -->
+            <div style="position:sticky;top:80px;display:flex;flex-direction:column;gap:12px">
+              <div class="card">
+                <div style="padding:11px 14px;background:#F4F7FA;border-bottom:1px solid #E7ECF1;font-size:12px;font-weight:700;color:#0E2A47">Kết quả phân loại tự động</div>
+                <div style="padding:13px 14px">
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px;border-bottom:1px solid #F4F7FA"><span style="color:#6C7B8B">Tuổi tại ngày vi phạm</span><span style="font-weight:700;color:#0E2A47">${c.age} tuổi</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px;border-bottom:1px solid #F4F7FA"><span style="color:#6C7B8B">Nhóm phân loại</span><span style="font-weight:700;color:${c.gcolor}">${c.group}</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px;border-bottom:1px solid #F4F7FA"><span style="color:#6C7B8B">Thời hiệu luật định</span><span style="font-weight:700;color:#0E2A47">${c.months} tháng</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px;border-bottom:1px solid #F4F7FA"><span style="color:#6C7B8B">Hạn chót thời hiệu</span><span style="font-weight:700;color:${c.expired ? RED : NAVY}">${fmt(c.exp)}</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px;border-bottom:1px solid #F4F7FA"><span style="color:#6C7B8B">Diện quản lý</span><span style="font-weight:700;color:${c.mobile ? AMBER : GREEN}">${c.mobile ? 'Lưu động (<30 ngày)' : 'Cư trú ổn định'}</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.4px"><span style="color:#6C7B8B">Tài liệu đã đính kèm</span><span style="font-weight:700;color:${s.fDocs.length === 5 ? GREEN : AMBER}">${s.fDocs.length}/5</span></div>
+                </div>
+              </div>
+
+              <div style="background:${verdict.bg};border:1px solid ${verdict.bd};border-radius:4px;padding:13px 14px">
+                <div style="font-size:12.5px;font-weight:700;color:${verdict.fg};margin-bottom:5px">${verdict.title}</div>
+                <div style="font-size:12px;color:${verdict.fg};line-height:1.55">${verdict.text}</div>
+              </div>
+
+              <button onclick="app.doCreateProfile()" class="btn-primary" style="padding:12px;font-size:13.2px;background:${blocked ? '#8E1620' : NAVY}">
+                ${blocked ? 'Lưu hồ sơ ở trạng thái hết thời hiệu' : 'Lưu & trình Trưởng Công an xã'}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      toggleDoc(index) {
+        const list = this.state.fDocs;
+        if (list.includes(index)) {
+          this.state.fDocs = list.filter(x => x !== index);
+        } else {
+          this.state.fDocs = list.concat(index);
+        }
+        this.render();
+      }
+
+      doCreateProfile() {
+        const s = this.state;
+        const a = this.acct();
+        const c = this.calc();
+        if (!s.fName.trim()) {
+          this.flash('Chưa nhập họ tên đối tượng.', true);
+          return;
+        }
+        const code = 'HS-2026-' + d2(s.seq).padStart(5, '0');
+        const blocked = c.expired;
+        const st = blocked ? 'EXPIRED_STATUTE' : (s.fDocs.length === 5 ? 'SUBMITTED_CA' : 'DRAFT');
+        const vObj = VIOLS.find(v => v.id === s.fViolType) || VIOLS[0];
+
+        const p = {
+          code,
+          name: s.fName.toUpperCase(),
+          dob: fmt(new Date(s.fDob)),
+          group: c.group,
+          viol: vObj.label,
+          mentor: '— chưa phân công',
+          st,
+          pct: 0,
+          hamlet: s.fHamlet,
+          sub: 'Nam · ' + c.age + ' tuổi',
+          dur: c.age < 18 ? 'Đề xuất 3 – 6 tháng' : 'Đề xuất 6 – 12 tháng',
+          guardian: (s.fGuardian || 'Chưa nhập') + (s.fPhone ? ' · ' + s.fPhone : ''),
+          vehicle: s.fVehicle || 'Chưa ghi nhận',
+          res: c.mobile ? 'Lưu động · ' + s.fDays + ' ngày' : 'Cư trú ổn định · ' + s.fDays + ' ngày',
+          docsOk: s.fDocs.length,
+          rating: '—',
+          history: [{ time: this.histLine(), text: a.name + ' khởi tạo hồ sơ' }]
+        };
+
+        this.state.profiles.unshift(p);
+        this.state.seq++;
+        this.state.screen = 'profiles';
+        this.state.selCode = code;
+        this.state.fName = '';
+        this.state.fGuardian = '';
+        this.state.fPhone = '';
+        this.log('CREATE', code, 'Khởi tạo hồ sơ mới');
+        this.flash(blocked ? code + ' đã lưu ở trạng thái EXPIRED_STATUTE.' : (st === 'SUBMITTED_CA' ? code + ' đã tạo và trình Trưởng Công an xã duyệt.' : code + ' đã lưu nháp — cần bổ sung đủ 05 tài liệu.'), blocked);
+      }
+
+      // =======================================================================
+      // M02: PHÂN CÔNG NGƯỜI GIÚP ĐỠ & QUYẾT TOÁN 500K
+      // =======================================================================
+      renderAssign() {
+        const s = this.state;
+        const a = this.acct();
+        const scoped = this.visibleProfiles();
+        const waitList = scoped.filter(p => p.mentor.indexOf('chưa') >= 0 || p.mentor === '—');
+        const pm = s.mentors.find(m => m.id === s.mentorId) || s.mentors[0];
+        const full = pm.cases >= 3;
+
+        const paid = s.vouchers.filter(v => v.st === 'PAID').reduce((n, v) => n + v.amount, 0);
+        const totalOk = s.vouchers.filter(v => v.st !== 'LOCKED').reduce((n, v) => n + v.amount, 0);
+
+        return `
+          <div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start">
+              <!-- DANH BẠ NGƯỜI GIÚP ĐỠ -->
+              <div class="card">
+                <div class="card-header">
+                  <span>Danh bạ người giúp đỡ</span>
+                  <span style="font-size:11px;color:#8B98A6">Định mức tối đa 03 ca/người</span>
+                </div>
+                ${s.mentors.map(m => {
+                  const ini = m.name.split(' ').slice(-2).map(w => w[0]).join('');
+                  const isSel = s.mentorId === m.id;
+                  const isBusy = m.cases >= 3;
+                  const loadColor = isBusy ? RED : m.cases === 2 ? AMBER : GREEN;
+                  return `
+                    <button onclick="app.setState({ mentorId: '${m.id}' })" style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:11px 15px;border-bottom:1px solid #F0F3F6;background:${isSel ? '#F2F7FC' : '#fff'}">
+                      <span style="width:32px;height:32px;border-radius:50%;background:#E7EEF6;color:#0E2A47;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">${ini}</span>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:12.8px;font-weight:600;color:#16212E">${m.name}</span>
+                        <span style="display:block;font-size:11.3px;color:#6C7B8B">${m.org} · ${m.phone}</span>
+                      </span>
+                      <span style="text-align:right;flex:none">
+                        <span style="display:block;font-size:11px;font-weight:700;color:${loadColor}">${m.cases}/3 ca</span>
+                        <span style="display:block;width:56px;height:5px;background:#EDF1F5;border-radius:3px;margin-top:4px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round(m.cases / 3 * 100)}%;background:${loadColor}"></span></span>
+                      </span>
+                      <span class="badge" style="background:${isBusy ? '#FDECEE' : '#E7F4EC'};color:${isBusy ? '#96101B' : '#14663C'};flex:none">${isBusy ? 'BUSY_FULL' : 'AVAILABLE'}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- FORM PHÂN CÔNG KÈM CẶP -->
+              <div class="card">
+                <div class="card-header">Phân công kèm cặp</div>
+                <div style="padding:14px 15px">
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Đối tượng đang chờ phân công</label>
+                  <select onchange="app.setState({ assignProfile: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:13px;background:#fff;margin-bottom:12px">
+                    ${waitList.length ? waitList.map(p => `<option value="${p.code}">${p.code} · ${p.name} · ${p.viol}</option>`).join('') : '<option value="">Không có đối tượng chờ phân công trong phạm vi</option>'}
+                  </select>
+
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Người giúp đỡ được chọn</label>
+                  <div style="padding:10px 12px;border:1px solid ${full ? '#F0BFC3' : '#BFE0CD'};background:${full ? '#FDF0F1' : '#EDF7F1'};border-radius:3px;margin-bottom:6px">
+                    <div style="font-size:13px;font-weight:600;color:#16212E">${pm.name}</div>
+                    <div style="font-size:11.5px;color:#6C7B8B;margin-top:2px">${pm.org} · ${pm.phone} · đang phụ trách ${pm.cases}/3 ca</div>
+                  </div>
+                  <div style="font-size:11.5px;color:${full ? '#96101B' : '#5B6B7C'};line-height:1.5;margin-bottom:12px">
+                    ${full ? 'Đã đạt định mức tối đa 03 ca — hệ thống sẽ chặn khi bấm phân công (BR-M02-01).' : 'Đủ điều kiện tiếp nhận. Sau khi duyệt, người giúp đỡ có 24 giờ xác nhận.'}
+                  </div>
+
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:6px">Nhiệm vụ trọng tâm</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px">
+                    ${TASKS.map(tk => {
+                      const on = s.tasks.includes(tk.id);
+                      return `
+                        <button onclick="app.toggleTask('${tk.id}')" style="padding:6px 11px;border-radius:14px;font-size:11.8px;font-weight:600;border:1px solid ${on ? NAVY : '#CFD8E1'};background:${on ? '#E7EEF6' : '#fff'};color:${on ? NAVY : '#5B6B7C'}">${tk.label}</button>
+                      `;
+                    }).join('')}
+                  </div>
+
+                  <button onclick="app.doAssignMentor()" class="btn-primary" style="width:100%;padding:11px">
+                    ${this.can('assign.approve') ? 'Phê duyệt phân công' : (this.can('assign.propose') ? 'Đề xuất phân công' : 'Không có quyền phân công')}
+                  </button>
+                  <div style="font-size:11.3px;color:#8B98A6;margin-top:8px;line-height:1.55">Mốc tính kinh phí 500.000đ/tháng bắt đầu từ ngày người giúp đỡ xác nhận tiếp nhận.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BẢNG QUYẾT TOÁN KINH PHÍ 500K CÓ HARD-STOP -->
+            <div class="card">
+              <div class="card-header">
+                <div>Quyết toán kinh phí hỗ trợ 500.000đ/tháng · kỳ 08/2026</div>
+                <div style="font-size:11.5px;color:#8B98A6">Điều kiện xuất phiếu chi: tối thiểu 02 lượt ghi sổ tay/tháng (Cơ chế Khóa cứng Hard-stop)</div>
+              </div>
+              <div class="grid-table-header" style="grid-template-columns: 120px 1.2fr 90px 80px 100px 120px 110px;">
+                <div>Mã phiếu chi</div>
+                <div>Người nhận</div>
+                <div>Ca kèm cặp</div>
+                <div>Sổ tay/tháng</div>
+                <div style="text-align:right">Số tiền</div>
+                <div>Trạng thái</div>
+                <div style="text-align:right">Thao tác</div>
+              </div>
+              <div>
+                ${s.vouchers.map(v => {
+                  const m = s.mentors.find(x => x.id === v.mid);
+                  const locked = v.st === 'LOCKED';
+                  const canReview = this.can('voucher.review') && v.st === 'PENDING_REVIEW';
+                  const canPay = this.can('voucher.pay') && v.st === 'CHIEF_APPROVED';
+                  const actv = canReview || canPay;
+                  const vstMap = {
+                    PENDING_REVIEW: { l: 'Chờ thẩm định', bg: '#FDF3E2', fg: '#8A5A08' },
+                    CHIEF_APPROVED: { l: 'Trưởng CA đã duyệt', bg: '#E9F0FA', fg: '#1D4E8F' },
+                    PAID: { l: 'Đã chi trả', bg: '#E7F4EC', fg: '#14663C' },
+                    LOCKED: { l: 'Hard-stop: thiếu sổ tay', bg: '#FDECEE', fg: '#96101B' }
+                  };
+                  const stObj = vstMap[v.st];
+                  return `
+                    <div class="grid-table-row" style="grid-template-columns: 120px 1.2fr 90px 80px 100px 120px 110px;background:${locked ? '#FEF7F8' : '#fff'}">
+                      <div class="font-mono" style="font-size:11.5px;color:#0E2A47;font-weight:600">${v.code}</div>
+                      <div>
+                        <span style="font-weight:600;color:#16212E">${m.name}</span>
+                        <span style="display:block;font-size:11px;color:#8B98A6">${m.bank}</span>
+                      </div>
+                      <div style="color:#42505F">${v.cases}</div>
+                      <div><span style="font-weight:700;color:${m.logs >= 2 ? GREEN : RED}">${m.logs} lượt</span></div>
+                      <div class="font-mono" style="text-align:right;font-weight:600;color:${locked ? RED : '#16212E'}">${locked ? 'Bị khóa' : money(v.amount)}</div>
+                      <div><span class="badge" style="background:${stObj.bg};color:${stObj.fg}">${stObj.l}</span></div>
+                      <div style="text-align:right">
+                        <button onclick="app.handleVoucher('${v.code}')" style="padding:6px 10px;border-radius:3px;font-size:11.5px;font-weight:600;border:1px solid ${actv ? NAVY : '#CFD8E1'};background:${actv ? NAVY : '#fff'};color:${actv ? '#fff' : '#5B6B7C'}">
+                          ${locked ? 'Không xuất phiếu' : (canPay ? 'Ký duyệt chi' : (canReview ? 'Thẩm định' : 'Xem phiếu'))}
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div style="padding:11px 14px;border-top:1px solid #EDF1F5;display:flex;justify-content:space-between;font-size:12.3px">
+                <span style="color:#6C7B8B">${s.vouchers.length} phiếu chi kỳ 08/2026 · ${s.vouchers.filter(v => v.st === 'LOCKED').length} phiếu bị khóa do thiếu sổ tay</span>
+                <span class="font-mono" style="font-weight:700;color:#0E2A47">Đã chi: ${money(paid)} / hợp lệ ${money(totalOk)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      toggleTask(id) {
+        const list = this.state.tasks;
+        if (list.includes(id)) {
+          this.state.tasks = list.filter(x => x !== id);
+        } else {
+          this.state.tasks = list.concat(id);
+        }
+        this.render();
+      }
+
+      doAssignMentor() {
+        const s = this.state;
+        const a = this.acct();
+        const canAssign = this.can('assign.propose') || this.can('assign.approve');
+        if (!canAssign) {
+          this.flash('Tài khoản của bạn không có quyền phân công người giúp đỡ.', true);
+          return;
+        }
+        const scoped = this.visibleProfiles();
+        const waitList = scoped.filter(p => p.mentor.indexOf('chưa') >= 0 || p.mentor === '—');
+        const assignTarget = waitList.find(p => p.code === s.assignProfile) || waitList[0];
+        if (!assignTarget) {
+          this.flash('Không còn đối tượng chờ phân công trong phạm vi.', true);
+          return;
+        }
+        const pm = s.mentors.find(m => m.id === s.mentorId) || s.mentors[0];
+        if (pm.cases >= 3) {
+          this.flash(pm.name + ' đã đủ định mức 03 ca (BR-M02-01) — không thể phân công thêm.', true);
+          return;
+        }
+        const approve = this.can('assign.approve');
+        pm.cases++;
+        this.patchProfile(assignTarget.code, { mentor: approve ? pm.name : pm.name + ' (chờ duyệt)' }, a.name + (approve ? ' phê duyệt' : ' đề xuất') + ' phân công ' + pm.name);
+        this.log(approve ? 'ASSIGN_APPROVE' : 'ASSIGN_PROPOSE', assignTarget.code, 'Người giúp đỡ: ' + pm.name);
+        this.flash(assignTarget.name + ' → ' + pm.name + (approve ? ': đã phê duyệt phân công thành công.' : ': đã gửi đề xuất lên Trưởng Công an xã.'));
+      }
+
+      handleVoucher(code) {
+        const v = this.state.vouchers.find(x => x.code === code);
+        const a = this.acct();
+        if (!v) return;
+        const m = this.state.mentors.find(x => x.id === v.mid);
+
+        if (v.st === 'LOCKED') {
+          this.flash('Hard-stop: ' + m.name + ' chỉ ghi ' + m.logs + '/2 lượt sổ tay trong tháng — hệ thống không xuất phiếu chi.', true);
+          return;
+        }
+        if (this.can('voucher.review') && v.st === 'PENDING_REVIEW') {
+          v.st = 'CHIEF_APPROVED';
+          this.log('VOUCHER_REVIEW', v.code, 'Thẩm định phiếu chi ' + m.name);
+          this.flash(v.code + ': đã thẩm định, chuyển Chủ tịch UBND xã ký duyệt chi.');
+          this.render();
+          return;
+        }
+        if (this.can('voucher.pay') && v.st === 'CHIEF_APPROVED') {
+          v.st = 'PAID';
+          this.log('VOUCHER_PAY', v.code, 'Ký duyệt chi ' + money(v.amount));
+          this.flash(v.code + ': đã ký duyệt chi ' + money(v.amount) + ' cho ' + m.name + '.');
+          this.render();
+          return;
+        }
+        this.log('VIEW_VOUCHER', v.code, 'Xem phiếu chi');
+        this.flash('Tài khoản của bạn chỉ có quyền xem phiếu chi này.');
+      }
+
+      // =======================================================================
+      // M03: TRÌNH DIỆN TẠI CA XÃ & SỔ TAY SỐ MOBILE
+      // =======================================================================
+      renderCheckin() {
+        const s = this.state;
+        const a = this.acct();
+        const curAp = s.appts.find(x => x.id === s.checkinId) || s.appts[0];
+        const canRecord = this.can('checkin.record');
+
+        const apStyle = {
+          DONE: { l: 'Đã có mặt', bg: '#E7F4EC', fg: '#14663C' },
+          WAITING: { l: 'Đang chờ', bg: '#FDF3E2', fg: '#8A5A08' },
+          PENDING: { l: 'Chưa đến hạn', bg: '#EEF1F5', fg: '#5B6B7C' },
+          ABSENT: { l: 'Vắng — báo động', bg: '#FDECEE', fg: '#96101B' }
+        };
+
+        return `
+          <div style="display:grid;grid-template-columns:1fr 400px;gap:12px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <!-- LỊCH TRÌNH DIỆN HÔM NAY -->
+              <div class="card">
+                <div class="card-header">
+                  <span>Lịch trình diện tại Công an xã · 28/08/2026</span>
+                  <span style="font-size:11.5px;color:#8B98A6">Quá 4 tiếng chưa có mặt → cảnh báo đỏ &amp; SMS gia đình</span>
+                </div>
+                ${s.appts.map(ap => {
+                  const isSel = s.checkinId === ap.id;
+                  const st = apStyle[ap.st];
+                  return `
+                    <div style="display:flex;align-items:center;gap:13px;padding:11px 15px;border-bottom:1px solid #F0F3F6;background:${isSel ? '#F2F7FC' : (ap.st === 'ABSENT' ? '#FEF7F8' : '#fff')}">
+                      <span class="font-mono" style="font-size:12.5px;font-weight:600;color:#0E2A47;width:44px;flex:none">${ap.time}</span>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:13px;font-weight:600;color:#16212E">${ap.name}</span>
+                        <span style="display:block;font-size:11.3px;color:#6C7B8B">${ap.code} · ${ap.note}</span>
+                      </span>
+                      <span class="badge" style="background:${st.bg};color:${st.fg};flex:none">${ap.st === 'DONE' ? st.l + ' ' + ap.doneAt : st.l}</span>
+                      <button onclick="app.setState({ checkinId: '${ap.id}' })" class="btn-outline" style="flex:none;${isSel ? 'background:#0E2A47;color:#fff;border-color:#0E2A47' : ''}">
+                        ${ap.st === 'DONE' ? 'Xem lại' : 'Ghi nhận'}
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- SỔ TAY SỐ NGƯỜI GIÚP ĐỠ -->
+              <div class="card">
+                <div class="card-header">
+                  <span>Sổ tay số của người giúp đỡ (đồng bộ Mobile)</span>
+                  <span style="font-size:11.3px;color:#1B7F4B;font-weight:600">✓ Đã xác thực GPS &amp; Ảnh thực địa</span>
+                </div>
+                ${s.diary.map(d => `
+                  <div style="display:flex;gap:12px;padding:12px 15px;border-bottom:1px solid #F0F3F6">
+                    <div class="font-mono" style="width:70px;height:52px;flex:none;border-radius:3px;background:repeating-linear-gradient(45deg,#EDF1F5,#EDF1F5 6px,#E4EAF1 6px,#E4EAF1 12px);display:flex;align-items:center;justify-content:center;font-size:9px;color:#8B98A6">ảnh GPS</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="display:flex;justify-content:space-between;gap:10px">
+                        <span style="font-size:12.8px;font-weight:600;color:#16212E">${d.mentor} → ${d.subject}</span>
+                        <span class="font-mono" style="font-size:11px;color:#8B98A6;flex:none">${d.time}</span>
+                      </div>
+                      <div style="font-size:11.5px;color:#6C7B8B;margin-top:2px">${d.place}</div>
+                      <div style="font-size:12.2px;color:#42505F;margin-top:5px;line-height:1.55">${d.note}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- FORM GHI NHẬN TRÌNH DIỆN TẠI TRỤ SỞ -->
+            <div class="card" style="position:sticky;top:80px">
+              <div style="padding:12px 15px;border-bottom:1px solid #E7ECF1;background:#F4F7FA">
+                <div style="font-size:13px;font-weight:700;color:#0E2A47">Ghi nhận trình diện tại Trụ sở Công an Xã</div>
+                <div style="font-size:11.5px;color:#6C7B8B;margin-top:2px">${curAp.name} · ${curAp.code} · lịch hẹn ${curAp.time}</div>
+              </div>
+              <div style="padding:14px 15px;display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:6px">Tình trạng có mặt</label>
+                  <div style="display:flex;gap:6px">
+                    ${[
+                      ['ON_TIME', 'Đúng giờ'],
+                      ['LATE_EXCUSED', 'Trễ có lý do'],
+                      ['MISSED_UNEXCUSED', 'Vắng không lý do']
+                    ].map(([id, l]) => `
+                      <button onclick="app.setCheckinField('attendance', '${id}')" style="padding:6px 9px;border-radius:3px;font-size:11.8px;font-weight:600;border:1px solid ${s.checkin.attendance === id ? NAVY : '#CFD8E1'};background:${s.checkin.attendance === id ? '#E7EEF6' : '#fff'};color:${s.checkin.attendance === id ? NAVY : '#5B6B7C'}">${l}</button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:6px">Thái độ, tác phong</label>
+                  <div style="display:flex;gap:6px">
+                    ${[
+                      ['COOPERATIVE', 'Hợp tác'],
+                      ['POLITE', 'Lễ phép'],
+                      ['DEFIANT', 'Chống đối']
+                    ].map(([id, l]) => `
+                      <button onclick="app.setCheckinField('conduct', '${id}')" style="padding:6px 9px;border-radius:3px;font-size:11.8px;font-weight:600;border:1px solid ${s.checkin.conduct === id ? NAVY : '#CFD8E1'};background:${s.checkin.conduct === id ? '#E7EEF6' : '#fff'};color:${s.checkin.conduct === id ? NAVY : '#5B6B7C'}">${l}</button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:6px">Kết quả test ma túy nhanh</label>
+                  <div style="display:flex;gap:6px">
+                    ${[
+                      ['NEGATIVE', 'Âm tính'],
+                      ['POSITIVE', 'Dương tính (Báo động)'],
+                      ['NOT_TESTED', 'Không test']
+                    ].map(([id, l]) => `
+                      <button onclick="app.setCheckinField('drug', '${id}')" style="padding:6px 9px;border-radius:3px;font-size:11.8px;font-weight:600;border:1px solid ${s.checkin.drug === id ? (id === 'POSITIVE' ? RED : NAVY) : '#CFD8E1'};background:${s.checkin.drug === id ? (id === 'POSITIVE' ? '#FDF0F1' : '#E7EEF6') : '#fff'};color:${s.checkin.drug === id ? (id === 'POSITIVE' ? RED : NAVY) : '#5B6B7C'}">${l}</button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:6px">Kiểm tra phương tiện</label>
+                  <div style="display:flex;gap:6px">
+                    ${[
+                      ['STANDARD_OK', 'Nguyên bản'],
+                      ['ILLEGAL_MODIFICATIONS', 'Có độ chế (Pô/Mâm)'],
+                      ['NO_VEHICLE', 'Không có xe']
+                    ].map(([id, l]) => `
+                      <button onclick="app.setCheckinField('vehicle', '${id}')" style="padding:6px 9px;border-radius:3px;font-size:11.8px;font-weight:600;border:1px solid ${s.checkin.vehicle === id ? NAVY : '#CFD8E1'};background:${s.checkin.vehicle === id ? '#E7EEF6' : '#fff'};color:${s.checkin.vehicle === id ? NAVY : '#5B6B7C'}">${l}</button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Nội dung cán bộ răn đe, giáo dục <span style="color:#C1121F">*</span></label>
+                  <textarea rows="3" oninput="app.setState({ counsel: this.value })" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:12.8px;resize:vertical">${s.counsel}</textarea>
+                  <div style="font-size:10.8px;color:${s.counsel.trim().length >= 20 ? '#8B98A6' : RED};margin-top:4px">
+                    ${s.counsel.trim().length >= 20 ? 'Đạt yêu cầu tối thiểu 20 ký tự' : 'Còn thiếu ' + (20 - s.counsel.trim().length) + ' ký tự'}
+                  </div>
+                </div>
+
+                ${s.checkin.drug === 'POSITIVE' ? `
+                  <div style="padding:11px 13px;border:1px solid #F0BFC3;background:#FDF0F1;border-radius:3px">
+                    <div style="font-size:12.3px;font-weight:700;color:#96101B">Báo động đỏ — test ma túy dương tính</div>
+                    <div style="font-size:11.8px;color:#96101B;margin-top:4px;line-height:1.55">Khi lưu, hệ thống sẽ tự động đề xuất họp đột xuất và gửi cảnh báo tới Trưởng Công an xã, người giúp đỡ và gia đình.</div>
+                  </div>
+                ` : ''}
+
+                <button onclick="app.doSaveCheckin()" class="btn-primary" style="padding:11px">
+                  ${canRecord ? 'Lưu kết quả trình diện' : 'Chỉ CSKV được ghi nhận'}
+                </button>
+                <div style="font-size:11.3px;color:#8B98A6;line-height:1.55">
+                  ${canRecord ? 'Kết quả lưu xong sẽ cập nhật ngay lịch trình diện, KPI bảng điều hành và nhật ký hệ thống.' : 'Tài khoản của bạn chỉ được xem lịch trình diện và sổ tay.'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      setCheckinField(field, val) {
+        this.state.checkin[field] = val;
+        this.render();
+      }
+
+      doSaveCheckin() {
+        const s = this.state;
+        const a = this.acct();
+        if (!this.can('checkin.record')) {
+          this.flash('Chỉ Cán bộ CSKV được ghi nhận trình diện tại trụ sở.', true);
+          return;
+        }
+        if (s.counsel.trim().length < 20) {
+          this.flash('Nội dung răn đe phải tối thiểu 20 ký tự.', true);
+          return;
+        }
+        const curAp = s.appts.find(x => x.id === s.checkinId) || s.appts[0];
+        const now = new Date();
+        const at = d2(now.getHours()) + ':' + d2(now.getMinutes());
+
+        curAp.st = s.checkin.attendance === 'MISSED_UNEXCUSED' ? 'ABSENT' : 'DONE';
+        curAp.doneAt = at;
+
+        const isPositive = s.checkin.drug === 'POSITIVE';
+        this.log('CHECKIN', curAp.code, 'Trình diện: ' + (isPositive ? 'test MT dương tính' : 'test MT âm tính'));
+        this.flash(isPositive
+          ? curAp.name + ': đã lưu — BÁO ĐỘNG ĐỎ, hệ thống đề xuất họp đột xuất và thông báo Trưởng CA.'
+          : curAp.name + ': đã lưu kết quả trình diện lúc ' + at + ', chuỗi ngày chấp hành tốt +7.', isPositive);
+      }
+
+      // =======================================================================
+      // M04: HỌP ĐÁNH GIÁ XẾP LOẠI & ĐIỂM DANH QUORUM
+      // =======================================================================
+      renderMeeting() {
+        const s = this.state;
+        const a = this.acct();
+        const presentCount = Object.values(s.present).filter(Boolean).length;
+        const qp = Math.round(presentCount / ATTENDEES.length * 100);
+        const quorumOk = qp >= 66.7;
+        const canChair = this.can('meeting.chair');
+
+        const RAT = [
+          ['EXCELLENT', 'Xuất sắc'],
+          ['PROGRESSIVE', 'Có tiến bộ'],
+          ['NO_PROGRESS', 'Chưa tiến bộ'],
+          ['UNCOOPERATIVE', 'Không hợp tác']
+        ];
+        const RATVI = { EXCELLENT: 'Xuất sắc', PROGRESSIVE: 'Có tiến bộ', NO_PROGRESS: 'Chưa tiến bộ', UNCOOPERATIVE: 'Không hợp tác' };
+
+        return `
+          <div style="display:grid;grid-template-columns:340px 1fr;gap:12px;align-items:start">
+            <!-- ĐIỂM DANH QUORUM (ĐIỀU 15 NĐ 120) -->
+            <div class="card" style="position:sticky;top:80px">
+              <div class="card-header">Điểm danh &amp; Quorum (Điều 15 NĐ 120)</div>
+              <div style="padding:13px 15px;border-bottom:1px solid #EDF1F5">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:11.5px;color:#6C7B8B;font-weight:600">Tỷ lệ có mặt thời gian thực</span>
+                  <span class="font-mono" style="font-size:24px;font-weight:700;color:${quorumOk ? GREEN : RED}">${qp}%</span>
+                </div>
+                <div style="height:9px;background:#EDF1F5;border-radius:3px;overflow:hidden;margin-top:7px;position:relative">
+                  <div style="height:100%;width:${qp}%;background:${quorumOk ? GREEN : RED}"></div>
+                  <div style="position:absolute;left:66.7%;top:0;bottom:0;width:2px;background:#0E2A47"></div>
+                </div>
+                <div style="font-size:11.3px;color:#6C7B8B;margin-top:6px;line-height:1.5">
+                  ${quorumOk ? `Đạt quorum 2/3 (${presentCount}/${ATTENDEES.length} đại biểu).` : `Chưa đạt quorum 2/3 (${presentCount}/${ATTENDEES.length}) — không thể bắt đầu họp.`}
+                </div>
+              </div>
+
+              ${ATTENDEES.map((x, i) => {
+                const on = s.present[i];
+                return `
+                  <div style="display:flex;align-items:center;gap:10px;padding:9px 15px;border-bottom:1px solid #F4F7FA">
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:12.5px;font-weight:600;color:#16212E">${x.n}</span>
+                      <span style="display:block;font-size:11px;color:#8B98A6">${x.r}</span>
+                    </span>
+                    <button onclick="app.toggleAttendee(${i})" style="padding:5px 10px;border-radius:3px;font-size:11.5px;font-weight:600;border:1px solid ${on ? '#BFE0CD' : '#F0BFC3'};background:${on ? '#EDF7F1' : '#FDF0F1'};color:${on ? '#14663C' : '#96101B'};flex:none">
+                      ${on ? 'Có mặt' : 'Vắng'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+
+              <div style="padding:12px 15px;display:flex;gap:8px">
+                <button onclick="app.startMeeting()" class="btn-primary" style="flex:1;background:${quorumOk && !s.started ? NAVY : GREY}">
+                  ${s.started ? 'Đang họp' : 'Bắt đầu họp'}
+                </button>
+                <button onclick="app.postponeMeeting()" class="btn-outline">Hoãn (${s.postpones}/2)</button>
+              </div>
+            </div>
+
+            <!-- BIÊN BẢN HỌP ĐIỆN TỬ -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="font-mono" style="font-size:11px;color:#8B98A6">HOP-202608-00042 · Định kỳ quý III/2026</div>
+                  <div style="font-size:14px;font-weight:700;color:#0E2A47;margin-top:2px">Biên bản họp tư vấn điện tử — TRẦN QUỐC BẢO</div>
+                </div>
+                <div style="font-size:11.5px;color:#6C7B8B;text-align:right;line-height:1.5">Hội trường tầng 2, UBND xã<br>28/08/2026 · 14:00</div>
+              </div>
+
+              <div style="padding:15px 16px;display:grid;grid-template-columns:1fr 1fr;gap:13px 16px;border-bottom:1px solid #EDF1F5">
+                <div>
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6C7B8B;font-weight:600;margin-bottom:4px">Chủ trì</div>
+                  <div style="font-size:13px;font-weight:600">Ông Nguyễn Văn Thành — Chủ tịch UBND xã</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6C7B8B;font-weight:600;margin-bottom:4px">Thư ký</div>
+                  <div style="font-size:13px;font-weight:600">Đại úy Lê Văn Hùng — Cán bộ CSKV</div>
+                </div>
+              </div>
+
+              <!-- GIỜ LAO ĐỘNG CÔNG ÍCH ĐIỀU 50 -->
+              <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid #EDF1F5;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;color:#42505F;font-weight:600">Giờ Lao động Công ích (Điều 50 Luật 2024):</span>
+                <span class="font-mono" style="font-size:12.5px;color:#1B7F4B;font-weight:700">Đã tích lũy: 22 / 16 giờ (Đạt điều kiện xét sớm)</span>
+              </div>
+
+              <div style="padding:15px 16px;display:flex;flex-direction:column;gap:13px;border-bottom:1px solid #EDF1F5">
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Báo cáo của người giúp đỡ</label>
+                  <textarea rows="2" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:12.6px;resize:vertical;line-height:1.55">Trong quý, cháu Bảo trình diện đủ 12/12 lần, có 8 lượt thăm gặp tại nhà. Thái độ chuyển biến rõ, đã đi làm phụ quán ăn và phụ giúp gia đình.</textarea>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Ý kiến của đối tượng</label>
+                  <textarea rows="2" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:12.6px;resize:vertical;line-height:1.55">Cháu xin hứa không tụ tập gây rối, chấp hành đầy đủ lịch trình diện và mong được học nghề điện dân dụng.</textarea>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:5px">Ý kiến của gia đình</label>
+                  <textarea rows="2" style="width:100%;padding:9px 11px;border:1px solid #CFD8E1;border-radius:3px;font-size:12.6px;resize:vertical;line-height:1.55">Gia đình cam kết tiếp tục phối hợp quản lý giờ giấc buổi tối, không để cháu giao du với nhóm bạn cũ.</textarea>
+                </div>
+              </div>
+
+              <div style="padding:15px 16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;border-bottom:1px solid #EDF1F5">
+                <div>
+                  <div style="font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:7px">Kết quả biểu quyết (đa số quá bán)</div>
+                  <div style="display:flex;gap:8px">
+                    <div style="flex:1;border:1px solid #E3E9EF;border-radius:3px;padding:9px 10px;text-align:center;background:#EDF7F1">
+                      <div class="font-mono" style="font-size:19px;font-weight:700;color:#14663C">${presentCount}</div>
+                      <div style="font-size:10.8px;color:#6C7B8B;margin-top:2px">Tán thành</div>
+                    </div>
+                    <div style="flex:1;border:1px solid #E3E9EF;border-radius:3px;padding:9px 10px;text-align:center;background:#FDF0F1">
+                      <div class="font-mono" style="font-size:19px;font-weight:700;color:#96101B">0</div>
+                      <div style="font-size:10.8px;color:#6C7B8B;margin-top:2px">Không tán thành</div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:11.5px;font-weight:600;color:#42505F;margin-bottom:7px">Xếp loại rèn luyện kỳ này</div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    ${RAT.map(([id, l]) => `
+                      <button onclick="app.setState({ rating: '${id}' })" style="padding:7px 11px;border-radius:3px;font-size:11.8px;font-weight:600;border:1px solid ${s.rating === id ? NAVY : '#CFD8E1'};background:${s.rating === id ? NAVY : '#fff'};color:${s.rating === id ? '#fff' : '#5B6B7C'}">${l}</button>
+                    `).join('')}
+                  </div>
+                  <div style="font-size:11.3px;color:#6C7B8B;margin-top:9px;line-height:1.5">Xếp loại hiện chọn: ${RATVI[s.rating]}. Xuất sắc liên tiếp + đã chấp hành 1/2 thời hạn là căn cứ xét hoàn thành sớm.}</div>
+                </div>
+              </div>
+
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px">
+                <div style="font-size:11.5px;color:#8B98A6;line-height:1.55;max-width:430px">Biên bản sau khi Chủ tịch UBND xã ký số sẽ xuất PDF/A kèm mã băm SHA-256 và ghi vết vào nhật ký hệ thống.</div>
+                <button onclick="app.signMinutes()" class="btn-primary" style="background:${canChair && s.started && !s.signed ? RED : GREY}">
+                  ${s.signed ? 'Đã ký số biên bản' : (canChair ? 'Chủ trì ký số biên bản' : 'Chỉ Chủ tịch UBND xã được ký')}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      toggleAttendee(i) {
+        this.state.present[i] = !this.state.present[i];
+        this.render();
+      }
+
+      startMeeting() {
+        const presentCount = Object.values(this.state.present).filter(Boolean).length;
+        const qp = Math.round(presentCount / ATTENDEES.length * 100);
+        if (this.state.started) {
+          this.flash('Cuộc họp đã bắt đầu.');
+          return;
+        }
+        if (qp < 66.7) {
+          this.flash('Chưa đạt quorum 2/3 — nút bắt đầu họp bị khóa theo BR-M04-02.', true);
+          return;
+        }
+        this.state.started = true;
+        this.log('MEETING_START', 'HOP-202608-00042', 'Bắt đầu họp · quorum ' + qp + '%');
+        this.flash('Cuộc họp đã bắt đầu, biên bản điện tử được mở để ghi.');
+      }
+
+      postponeMeeting() {
+        if (this.state.postpones >= 2) {
+          this.flash('Đã hoãn tối đa 02 lần — hệ thống mở phương án tiến hành họp vắng mặt.', true);
+          return;
+        }
+        this.state.postpones++;
+        this.log('MEETING_POSTPONE', 'HOP-202608-00042', 'Hoãn họp lần ' + this.state.postpones);
+        this.flash('Đã hoãn cuộc họp lần ' + this.state.postpones + ' (mỗi lần tối đa 02 ngày làm việc).');
+      }
+
+      signMinutes() {
+        const a = this.acct();
+        if (!this.can('meeting.chair')) {
+          this.flash('Chỉ tài khoản Chủ tịch UBND xã được ký số biên bản họp.', true);
+          return;
+        }
+        if (!this.state.started) {
+          this.flash('Cuộc họp chưa được bắt đầu.', true);
+          return;
+        }
+        if (this.state.signed) {
+          this.flash('Biên bản đã được ký số.');
+          return;
+        }
+        this.state.signed = true;
+        const RATVI = { EXCELLENT: 'Xuất sắc', PROGRESSIVE: 'Có tiến bộ', NO_PROGRESS: 'Chưa tiến bộ', UNCOOPERATIVE: 'Không hợp tác' };
+        this.patchProfile('HS-2026-00012', { rating: RATVI[this.state.rating] + ' (kỳ III/2026)' }, a.name + ' ký biên bản họp, xếp loại ' + RATVI[this.state.rating]);
+        this.log('SIGN_MINUTES', 'HOP-202608-00042', 'Xếp loại ' + RATVI[this.state.rating]);
+        this.flash('Đã ký số biên bản — xếp loại "' + RATVI[this.state.rating] + '" đã cập nhật vào hồ sơ HS-2026-00012.');
+      }
+
+      // =======================================================================
+      // M05: KẾT THÚC, HOÀN LƯƠNG & XÓA VẾT NHƠ 365 NGÀY
+      // =======================================================================
+      renderExit() {
+        const a = this.acct();
+        const canPropose = this.can('exit.propose') || this.can('exit.review');
+        const canIssue = this.can('exit.issue');
+
+        const earlyRaw = [
+          {
+            code: 'HS-2026-00012', name: 'TRẦN QUỐC BẢO', ok: true,
+            crit: [
+              { k: 'Đã chấp hành', v: '4 tháng 8 ngày / 6 (72%)', fg: GREEN, bg: '#EDF7F1' },
+              { k: 'Xếp loại trung bình', v: 'Xuất sắc 2/3 kỳ', fg: GREEN, bg: '#EDF7F1' },
+              { k: 'Giờ công ích', v: '22 / 16 giờ', fg: GREEN, bg: '#EDF7F1' }
+            ]
+          },
+          {
+            code: 'HS-2026-00018', name: 'LÊ MINH KHOA', ok: false,
+            crit: [
+              { k: 'Đã chấp hành', v: '3 tháng 18 ngày / 6 (52%)', fg: AMBER, bg: '#FDF8EC' },
+              { k: 'Xếp loại trung bình', v: 'Có tiến bộ', fg: AMBER, bg: '#FDF8EC' },
+              { k: 'Giờ công ích', v: '11 / 16 giờ', fg: RED, bg: '#FDF0F1' }
+            ]
+          }
+        ];
+
+        const expunge = [
+          { name: 'HOÀNG ANH TÚ · CN-2026-00118', day: 352, note: 'Đã qua cổng thẩm tra ngày 350 — không có vi phạm mới. Tự động xóa vết ngày 12/07/2027.' },
+          { name: 'PHAN CÔNG MINH · CN-2026-00104', day: 288, note: 'Đang theo dõi hoàn lương, chưa đến cổng thẩm tra.' },
+          { name: 'LƯƠNG THẾ VINH · CN-2025-00097', day: 365, note: 'Đã xóa vết nhơ — hồ sơ chuyển EXPUNGED, khóa toàn bộ truy cập lý lịch cũ.' },
+          { name: 'NGÔ BẢO LONG · CN-2026-00110', day: 121, note: 'Theo dõi bình thường qua đầu mối người giúp đỡ.' }
+        ];
+
+        const referralSteps = [
+          { n: '1', label: 'Lập hồ sơ đề nghị tại Công an xã', meta: 'Hoàn tất 14/08/2026 · Đại úy Lê Văn Hùng', done: true },
+          { n: '2', label: 'Trưởng Công an xã thẩm định & ký tờ trình', meta: 'Hoàn tất 19/08/2026', done: true },
+          { n: '3', label: 'Gửi Tòa án nhân dân có thẩm quyền', meta: 'Đang chờ · dự kiến 30/08/2026', done: false },
+          { n: '4', label: 'Bàn giao Trường giáo dưỡng (6 tháng – 2 năm)', meta: 'Chưa thực hiện', done: false }
+        ];
+
+        return `
+          <div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start">
+              <!-- XÉT HOÀN THÀNH SỚM -->
+              <div class="card">
+                <div class="card-header">Xét hoàn thành sớm (>= 1/2 Thời hạn)</div>
+                ${earlyRaw.map(e => {
+                  const p = this.state.profiles.find(x => x.code === e.code);
+                  const proposed = p && p.st === 'PENDING_EARLY';
+                  const actv = e.ok && (canPropose || canIssue) && !proposed;
+                  const btnLabel = proposed ? 'Đã trình — chờ UBND ký' : (e.ok ? (canIssue ? 'Ký ban hành chứng nhận hoàn lương' : 'Lập tờ trình xét hoàn thành sớm') : 'Chưa đủ điều kiện (BR-M05-01)');
+                  return `
+                    <div style="padding:12px 15px;border-bottom:1px solid #F0F3F6">
+                      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+                        <span style="font-size:13px;font-weight:600;color:#16212E">${e.name}</span>
+                        <span class="font-mono" style="font-size:11px;color:#8B98A6">${e.code}</span>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px">
+                        ${e.crit.map(c => `
+                          <div style="border:1px solid #E7ECF1;border-radius:3px;padding:7px 9px;background:${c.bg}">
+                            <div style="font-size:10.5px;color:#6C7B8B">${c.k}</div>
+                            <div style="font-size:12.2px;font-weight:700;color:${c.fg};margin-top:2px">${c.v}</div>
+                          </div>
+                        `).join('')}
+                      </div>
+                      <button onclick="app.handleEarlyAction('${e.code}', ${e.ok})" style="margin-top:9px;padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;border:1px solid ${actv ? NAVY : '#CFD8E1'};background:${actv ? NAVY : '#fff'};color:${actv ? '#fff' : '#8B98A6'}">
+                        ${btnLabel}
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- CHỨNG NHẬN SỐ CÓ MÃ QR -->
+              <div class="card">
+                <div class="card-header">Chứng nhận số có mã QR an toàn</div>
+                <div style="padding:16px;display:flex;gap:16px">
+                  <div style="width:112px;height:112px;flex:none;border:1px solid #DDE3EA;border-radius:3px;background:repeating-conic-gradient(#16212E 0% 25%,#fff 0% 50%) 0 0/12px 12px;display:flex;align-items:flex-end;justify-content:center">
+                    <span class="font-mono" style="background:#fff;font-size:8.5px;padding:2px 4px;color:#16212E">QR xác thực</span>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div class="font-mono" style="font-size:11.5px;color:#0E2A47;font-weight:600">CN-2026-00118</div>
+                    <div style="font-size:14px;font-weight:700;color:#16212E;margin-top:3px">HOÀNG ANH TÚ</div>
+                    <div style="font-size:11.8px;color:#6C7B8B;margin-top:3px;line-height:1.55">Hoàn thành sớm biện pháp giáo dục tại xã, phường, thị trấn. Ngày cấp 12/07/2026 · Chủ tịch UBND xã ký số.</div>
+                    <div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap">
+                      <button onclick="app.downloadCert()" class="btn-outline">Tải PDF/A</button>
+                      <button onclick="app.sendCertSms()" class="btn-outline">Gửi Zalo/SMS gia đình</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:0 16px 16px">
+                  <div style="padding:11px 13px;background:#F4F7FA;border:1px solid #E7ECF1;border-radius:3px;font-size:11.5px;color:#5B6B7C;line-height:1.6">
+                    Cổng tra cứu công khai chỉ trả về trạng thái hợp lệ của chứng nhận, không hiển thị thông tin lý lịch vi phạm (chống kỳ thị).
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIẾN TRÌNH XÓA VẾT NHƠ 365 NGÀY & CHUYỂN TGD -->
+            <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:12px;align-items:start">
+              <div class="card">
+                <div class="card-header">
+                  <span>Tiến trình xóa vết nhơ tự động sau 01 năm</span>
+                  <span style="font-size:11.5px;color:#8B98A6">Cổng thẩm tra an toàn tại ngày thứ 350</span>
+                </div>
+                ${expunge.map(x => {
+                  const pct = Math.round(x.day / 365 * 100);
+                  const color = x.day >= 365 ? GREEN : x.day >= 350 ? AMBER : BLUE;
+                  return `
+                    <div style="padding:11px 15px;border-bottom:1px solid #F0F3F6">
+                      <div style="display:flex;justify-content:space-between;gap:10px;font-size:12.6px">
+                        <span style="font-weight:600;color:#16212E">${x.name}</span>
+                        <span class="font-mono" style="color:${color};font-weight:600">Ngày ${x.day}/365</span>
+                      </div>
+                      <div style="height:7px;background:#EDF1F5;border-radius:3px;overflow:hidden;margin-top:6px;position:relative">
+                        <div style="height:100%;width:${pct}%;background:${color}"></div>
+                        <div style="position:absolute;left:95.9%;top:0;bottom:0;width:2px;background:#0E2A47"></div>
+                      </div>
+                      <div style="font-size:11.2px;color:#6C7B8B;margin-top:5px">${x.note}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div class="card">
+                <div class="card-header">Đề nghị chuyển Trường giáo dưỡng</div>
+                <div style="padding:13px 15px">
+                  <div style="padding:11px 13px;border:1px solid #F0BFC3;background:#FDF0F1;border-radius:3px;margin-bottom:12px">
+                    <div style="font-size:12.5px;font-weight:700;color:#96101B">TRỊNH VĂN SƠN · HS-2025-00004</div>
+                    <div style="font-size:11.8px;color:#96101B;margin-top:4px;line-height:1.55">Tái phạm trộm cắp trong thời gian chấp hành; 02 kỳ liên tiếp xếp loại Kém; bỏ 03 buổi trình diện không lý do.</div>
+                  </div>
+                  ${referralSteps.map(rs => `
+                    <div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0">
+                      <span style="width:16px;height:16px;border-radius:50%;background:${rs.done ? GREEN : '#B7C2CE'};color:#fff;font-size:9.5px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px">${rs.n}</span>
+                      <span style="flex:1">
+                        <span style="display:block;font-size:12.4px;font-weight:600;color:${rs.done ? '#16212E' : '#8B98A6'}">${rs.label}</span>
+                        <span style="display:block;font-size:11.2px;color:#8B98A6;margin-top:1px">${rs.meta}</span>
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      handleEarlyAction(code, isOk) {
+        const a = this.acct();
+        const p = this.state.profiles.find(x => x.code === code);
+        if (!isOk) {
+          this.flash(p.name + ' chưa đạt điều kiện xét hoàn thành sớm (thiếu giờ công ích).', true);
+          return;
+        }
+        if (this.can('exit.issue')) {
+          this.patchProfile(code, { st: 'COMPLETED_EARLY', pct: 100 }, a.name + ' ký ban hành chứng nhận hoàn lương');
+          this.log('ISSUE_CERT', code, 'Cấp chứng nhận số có QR');
+          this.flash(p.name + ': đã cấp chứng nhận số, bắt đầu đếm 365 ngày xóa vết nhơ.');
+          return;
+        }
+        if (this.can('exit.propose')) {
+          this.patchProfile(code, { st: 'PENDING_EARLY' }, a.name + ' lập tờ trình xét hoàn thành sớm');
+          this.log('EARLY_PROPOSE', code, 'Tờ trình xét hoàn thành sớm');
+          this.flash(p.name + ': đã trình hồ sơ xét hoàn thành sớm lên UBND xã.');
+          return;
+        }
+        this.flash('Tài khoản của bạn chỉ được xem nội dung này.', true);
+      }
+
+      downloadCert() {
+        this.log('EXPORT_PDF', 'CN-2026-00118', 'Tải chứng nhận PDF/A');
+        this.flash('Đã tải chứng nhận CN-2026-00118 (PDF/A có chữ ký số).');
+      }
+
+      sendCertSms() {
+        this.log('SEND_CERT', 'CN-2026-00118', 'Gửi chứng nhận qua Zalo/SMS');
+        this.flash('Đã gửi link chứng nhận điện tử tới số điện thoại gia đình.');
+      }
+
+      // =======================================================================
+      // M06: NHẬT KÝ VẾT AUDIT TRAIL SHA-256 & BẢO MẬT
+      // =======================================================================
+      renderAudit() {
+        const s = this.state;
+        const a = this.acct();
+
+        const actColor = {
+          CREATE: ['#E9F0FA', '#1D4E8F'], SUBMIT: ['#E9F0FA', '#1D4E8F'], UPDATE: ['#FDF3E2', '#8A5A08'],
+          APPROVE: ['#E7F4EC', '#14663C'], ISSUE_DECISION: ['#E7F4EC', '#14663C'],
+          ASSIGN_APPROVE: ['#E7F4EC', '#14663C'], ASSIGN_PROPOSE: ['#E9F0FA', '#1D4E8F'], CHECKIN: ['#E9F0FA', '#1D4E8F'],
+          VOUCHER_REVIEW: ['#FDF3E2', '#8A5A08'], VOUCHER_PAY: ['#E7F4EC', '#14663C'], VIEW_VOUCHER: ['#EEF1F5', '#5B6B7C'],
+          EARLY_PROPOSE: ['#E9F0FA', '#1D4E8F'], ISSUE_CERT: ['#E7F4EC', '#14663C'], SIGN_MINUTES: ['#E7F4EC', '#14663C'],
+          EXPORT_PDF: ['#EFEAF7', '#4B3A80'], EXPORT_XLSX: ['#EFEAF7', '#4B3A80'], VIEW_PROFILE: ['#EEF1F5', '#5B6B7C'],
+          LOGIN: ['#EEF1F5', '#5B6B7C'], UNLOCK_ACCOUNT: ['#FDECEE', '#96101B']
+        };
+        const roleColor = { CSKV: '#5B6B7C', TRUONG_CA: '#1D4E8F', CHU_TICH_UBND: '#96101B', MENTOR: '#14663C', LANH_DAO_TINH: '#4B3A80' };
+
+        return `
+          <div style="display:grid;grid-template-columns:1fr 340px;gap:12px;align-items:start">
+            <!-- BẢNG NHẬT KÝ VẾT AUDIT LOG (CSS GRID) -->
+            <div class="card">
+              <div class="card-header">
+                <span>Nhật ký vết hệ thống (Immutable Audit Trail SHA-256)</span>
+                <span style="font-size:11.3px;color:#8B98A6">Hiển thị 14 bản ghi gần nhất · tổng ${s.logs.length}</span>
+              </div>
+              <div class="grid-table-header" style="grid-template-columns: 130px 150px 100px 1fr 140px;">
+                <div>Thời gian</div>
+                <div>Người thực hiện</div>
+                <div>Hành động</div>
+                <div>Đối tượng tác động</div>
+                <div>IP / Thiết bị</div>
+              </div>
+              <div>
+                ${s.logs.slice(0, 14).map(l => {
+                  const cc = actColor[l.action] || ['#EEF1F5', '#5B6B7C'];
+                  const rc = roleColor[l.role] || '#5B6B7C';
+                  return `
+                    <div class="grid-table-row" style="grid-template-columns: 130px 150px 100px 1fr 140px;">
+                      <div class="font-mono" style="font-size:11.3px;color:#5B6B7C;white-space:nowrap">${l.time}</div>
+                      <div>
+                        <span style="font-weight:600;color:#16212E">${l.actor}</span>
+                        <span class="font-mono" style="display:block;font-size:10.5px;color:${rc}">${l.role}</span>
+                      </div>
+                      <div><span class="badge font-mono" style="background:${cc[0]};color:${cc[1]}">${l.action}</span></div>
+                      <div>
+                        <span class="font-mono" style="font-size:11.2px;color:#0E2A47;font-weight:600">${l.target}</span>
+                        <span style="display:block;font-size:11px;color:#8B98A6">${l.detail}</span>
+                      </div>
+                      <div style="font-size:11.3px;color:#6C7B8B">${l.ip}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- CẢNH BÁO AN NINH & MA TRẬN RBAC -->
+            <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:80px">
+              <div class="card">
+                <div class="card-header">Cảnh báo an ninh</div>
+                ${s.incidents.map(ic => {
+                  const canUnlock = this.can('audit.unlock') && ic.locked;
+                  return `
+                    <div style="padding:12px 14px;border-bottom:1px solid #F0F3F6">
+                      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                        <span class="font-mono" style="font-size:10.8px;color:#8B98A6">${ic.code}</span>
+                        <span class="badge" style="background:${ic.sevBg};color:#fff">${ic.sev}</span>
+                      </div>
+                      <div style="font-size:12.5px;font-weight:600;color:#16212E;margin-top:5px">${ic.type}</div>
+                      <div style="font-size:11.5px;color:#6C7B8B;margin-top:3px;line-height:1.55">${ic.detail}</div>
+                      <button onclick="app.handleIncidentUnlock('${ic.code}')" style="margin-top:8px;padding:6px 11px;border:1px solid ${canUnlock ? NAVY : '#CFD8E1'};background:${canUnlock ? NAVY : '#fff'};border-radius:3px;font-size:11.6px;font-weight:600;color:${canUnlock ? '#fff' : '#5B6B7C'}">
+                        ${ic.locked ? (canUnlock ? 'Mở khóa tài khoản' : 'Đang bị khóa') : 'Xem chi tiết'}
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div class="card" style="padding:13px 14px">
+                <div style="font-size:12.5px;font-weight:700;color:#0E2A47;margin-bottom:8px">Ma trận quyền của tài khoản đang đăng nhập</div>
+                ${PERM_LABELS.map(([p, label]) => {
+                  const has = this.can(p);
+                  return `
+                    <div style="display:flex;gap:9px;align-items:flex-start;padding:4px 0;font-size:11.9px;line-height:1.5">
+                      <span style="width:14px;height:14px;border-radius:2px;background:${has ? GREEN : '#C3CEDA'};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px">${has ? '✓' : '✕'}</span>
+                      <span style="color:${has ? '#42505F' : '#9AA7B4'}">${label}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      handleIncidentUnlock(code) {
+        const ic = this.state.incidents.find(x => x.code === code);
+        const a = this.acct();
+        if (!ic) return;
+        if (this.can('audit.unlock') && ic.locked) {
+          ic.locked = false;
+          ic.detail += ' Đã được ' + a.name + ' mở khóa sau xác thực cấp 2.';
+          this.log('UNLOCK_ACCOUNT', ic.code, 'Mở khóa tài khoản sau xác thực cấp 2');
+          this.flash(ic.code + ': đã mở khóa tài khoản sau xác thực mật khẩu cấp 2.');
+          this.render();
+          return;
+        }
+        this.flash(ic.code + ' · ' + ic.type + ' — đã ghi vết thao tác tra cứu.');
+      }
+
+      // =======================================================================
+      // M07: TRUNG TÂM BÁO CÁO BI & XẾP HẠNG TOÀN TỈNH
+      // =======================================================================
+      renderReports() {
+        const a = this.acct();
+        const showRanking = this.can('report.province');
+
+        const reports = [
+          { name: 'Báo cáo Biến động Đối tượng', code: 'BC-01-BIENDONG', filters: 'Tuần / Tháng / Quý / 6 tháng / Năm' },
+          { name: 'Báo cáo Cơ cấu Vi phạm & Độ tuổi', code: 'BC-02-COCAU', filters: 'Khoảng ngày · Xã/Phường' },
+          { name: 'Báo cáo Kết quả Trình diện Định kỳ', code: 'BC-03-TRINHDIEN', filters: 'Tuần / Tháng · Kết quả test ma túy' },
+          { name: 'Báo cáo Hiệu quả Cảm hóa & Xóa vết nhơ', code: 'BC-04-HOANLUONG', filters: 'Năm · Tỷ lệ tái phạm' },
+          { name: 'Báo cáo Quyết toán Kinh phí 500k', code: 'BC-05-KINHPHI', filters: 'Tháng/Năm · Đơn vị chi trả' }
+        ];
+
+        const ranking = [
+          { n: '01', unit: 'Xã Tân Phú Trung', pct: '96%', color: GREEN },
+          { n: '02', unit: 'Phường An Nhơn Tây', pct: '92%', color: GREEN },
+          { n: '03', unit: 'Xã Trung Lập Hạ', pct: '87%', color: BLUE },
+          { n: '04', unit: 'Xã Phước Vĩnh An', pct: '79%', color: AMBER },
+          { n: '05', unit: 'Xã Bình Mỹ', pct: '68%', color: RED }
+        ];
+
+        return `
+          <div>
+            <div style="display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+              <select style="padding:8px 11px;border:1px solid #CFD8E1;border-radius:3px;background:#fff;font-size:12.5px">
+                <option>Kỳ báo cáo: Tháng 08/2026</option>
+                <option>Quý III/2026</option>
+                <option>Năm 2026</option>
+              </select>
+              <div style="padding:8px 11px;border:1px solid #DCE3EA;border-radius:3px;background:#F8FAFC;font-size:12.5px;color:#0E2A47;font-weight:600">Phạm vi: ${a.scopeText}</div>
+              <div style="flex:1"></div>
+              <div style="font-size:11.5px;color:#8B98A6">Mọi file xuất ra đều đóng dấu watermark danh tính người xuất &amp; ghi vết vào nhật ký</div>
+            </div>
+
+            <!-- 5 MẪU BÁO CÁO CHUẨN NGHIỆP VỤ -->
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px">
+              ${reports.map(r => `
+                <div class="card" style="padding:15px 16px;display:flex;gap:14px;align-items:flex-start">
+                  <div class="font-mono" style="width:38px;height:46px;flex:none;border:1px solid #D3DDE7;border-radius:2px;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-size:9px;color:#6C7B8B">BI/PDF</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13.2px;font-weight:700;color:#16212E">${r.name}</div>
+                    <div class="font-mono" style="font-size:10.8px;color:#8B98A6;margin-top:2px">${r.code}</div>
+                    <div style="font-size:11.8px;color:#6C7B8B;margin-top:6px;line-height:1.55">${r.filters}</div>
+                    <div style="display:flex;gap:7px;margin-top:10px">
+                      <button onclick="app.exportReport('${r.code}', 'PDF')" class="btn-primary" style="padding:6px 12px;font-size:11.8px">Kết xuất PDF/A</button>
+                      <button onclick="app.exportReport('${r.code}', 'XLS')" class="btn-outline" style="padding:6px 12px;font-size:11.8px">Excel</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- SO SÁNH & XẾP HẠNG TOÀN TỈNH (DÀNH CHO LÃNH ĐẠO TỈNH) -->
+            ${showRanking ? `
+              <div class="card" style="padding:16px 18px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                  <div>
+                    <div style="font-size:13.5px;font-weight:700;color:#0E2A47">So sánh &amp; Xếp hạng Điểm nóng An ninh Toàn Tỉnh</div>
+                    <div style="font-size:11.5px;color:#6C7B8B;margin-top:2px">Đánh giá theo tỷ lệ chấp hành trình diện, tỷ lệ cảm hóa và chỉ tiêu an toàn</div>
+                  </div>
+                  <span style="font-size:11.5px;color:#1B7F4B;font-weight:600">Toàn tỉnh: 25 Xã/Phường</span>
+                </div>
+                ${ranking.map(rk => `
+                  <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #F4F7FA">
+                    <span class="font-mono" style="font-size:11.5px;color:#8B98A6;width:20px">${rk.n}</span>
+                    <span style="width:190px;font-size:12.5px;font-weight:600;color:#16212E">${rk.unit}</span>
+                    <span style="flex:1;height:8px;background:#EDF1F5;border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:${rk.pct};background:${rk.color}"></span></span>
+                    <span class="font-mono" style="font-size:12px;font-weight:600;color:#0E2A47;width:52px;text-align:right">${rk.pct}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      exportReport(code, type) {
+        const a = this.acct();
+        if (type === 'PDF') {
+          this.log('EXPORT_PDF', code, 'Kết xuất PDF · ' + a.scopeText);
+          this.flash(code + ': đã kết xuất PDF/A có chữ ký số (watermark ' + a.name + ') và ghi vết.');
+        } else {
+          this.log('EXPORT_XLSX', code, 'Kết xuất Excel · ' + a.scopeText);
+          this.flash(code + ': đã kết xuất Excel chuẩn công thức và ghi vết.');
+        }
+      }
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    const app = new AppController();
+    window.app = app;
+    window.addEventListener('DOMContentLoaded', () => app.render());
+  </script>
+</body>
+</html>
